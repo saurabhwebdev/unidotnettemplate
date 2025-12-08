@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { colors } from '../config/theme.config';
 import { auditLogsService } from '../services/auditLogs.service';
 import type { AuditLog, AuditLogFilter } from '../services/auditLogs.service';
+import { DashboardLayout } from '../components/DashboardLayout';
 
 export default function AuditLogs() {
   const navigate = useNavigate();
@@ -88,25 +89,26 @@ export default function AuditLogs() {
   };
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/settings')}
-            className="p-2 rounded-lg transition-colors"
-            style={{ backgroundColor: colors.bgSecondary }}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: colors.textPrimary }}>
-              Audit Logs
-            </h1>
-            <p className="text-sm" style={{ color: colors.textMuted }}>
-              View all system activity and user actions
+    <DashboardLayout>
+      <div>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/settings')}
+              className="p-2 rounded-lg transition-colors"
+              style={{ backgroundColor: colors.bgSecondary }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold" style={{ color: colors.textPrimary }}>
+                Audit Logs
+              </h1>
+              <p className="text-sm" style={{ color: colors.textMuted }}>
+                View all system activity and user actions
             </p>
           </div>
         </div>
@@ -533,6 +535,7 @@ export default function AuditLogs() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
