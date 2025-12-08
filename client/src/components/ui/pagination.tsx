@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronDown } from 'lucide-react';
 import { colors } from '../../config/theme.config';
 
 interface PaginationProps {
@@ -81,22 +81,28 @@ export function Pagination({
             <span className="text-sm" style={{ color: colors.textMuted }}>
               per page:
             </span>
-            <select
-              value={pageSize}
-              onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="px-2 py-1 rounded-md text-sm border outline-none focus:ring-2 transition-all"
-              style={{
-                backgroundColor: colors.bgSecondary,
-                borderColor: colors.border,
-                color: colors.textPrimary,
-              }}
-            >
-              {pageSizeOptions.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={pageSize}
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                className="appearance-none px-3 py-1.5 pr-8 rounded-lg text-sm font-medium cursor-pointer outline-none transition-all"
+                style={{
+                  backgroundColor: colors.bgPrimary,
+                  border: `1px solid ${colors.border}`,
+                  color: colors.textPrimary,
+                }}
+              >
+                {pageSizeOptions.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                style={{ color: colors.textMuted }}
+              />
+            </div>
           </div>
         )}
       </div>

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { colors } from '../config/theme.config';
 import { auditLogsService } from '../services/auditLogs.service';
 import type { AuditLog, AuditLogFilter } from '../services/auditLogs.service';
@@ -8,7 +7,6 @@ import { Select } from '../components/ui/select';
 import { Pagination } from '../components/ui/pagination';
 
 export default function AuditLogs() {
-  const navigate = useNavigate();
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -92,38 +90,12 @@ export default function AuditLogs() {
 
   return (
     <DashboardLayout>
-      <div>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/settings')}
-              className="p-2 rounded-lg transition-colors"
-              style={{ backgroundColor: colors.bgSecondary }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold" style={{ color: colors.textPrimary }}>
-                Audit Logs
-              </h1>
-              <p className="text-sm" style={{ color: colors.textMuted }}>
-                View all system activity and user actions
-            </p>
-          </div>
-        </div>
-        <div className="text-sm" style={{ color: colors.textMuted }}>
-          Total: {totalCount} logs
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div
-        className="rounded-xl p-4 mb-6"
-        style={{ backgroundColor: colors.bgSecondary, border: `1px solid ${colors.border}` }}
-      >
+      <div className="space-y-6">
+        {/* Filters */}
+        <div
+          className="rounded-xl p-4"
+          style={{ backgroundColor: colors.bgPrimary, border: `1px solid ${colors.border}` }}
+        >
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Search */}
           <div className="md:col-span-2">
