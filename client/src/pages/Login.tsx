@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { MicrosoftLoginButton } from '../components/MicrosoftLoginButton';
 import { ImageSlideshow } from '../components/ImageSlideshow';
 import { colors } from '../config/theme.config';
+import { Loader2 } from 'lucide-react';
 
 export function Login() {
   const navigate = useNavigate();
@@ -159,10 +160,11 @@ export function Login() {
 
             <Button
               type="submit"
-              className="w-full text-white"
+              className="w-full text-white flex items-center justify-center gap-2"
               disabled={loading}
               style={{
-                backgroundColor: colors.primary
+                backgroundColor: loading ? colors.primaryHover : colors.primary,
+                opacity: loading ? 0.9 : 1
               }}
               onMouseEnter={(e) => {
                 if (!loading) {
@@ -175,6 +177,7 @@ export function Login() {
                 }
               }}
             >
+              {loading && <Loader2 size={18} className="animate-spin" />}
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
 
