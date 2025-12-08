@@ -1,0 +1,17 @@
+{
+  "name": "UniTemplate",
+  "short_name": "UniTemplate",
+  "description": "Modern .NET + React Application Template",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3cca70",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
