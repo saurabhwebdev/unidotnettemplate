@@ -7,6 +7,7 @@ import { Dashboard } from './pages/Dashboard';
 import { RolesAndUsers } from './pages/RolesAndUsers';
 import { Settings } from './pages/Settings';
 import { Profile } from './pages/Profile';
+import AuditLogs from './pages/AuditLogs';
 import { authService } from './services/auth.service';
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
@@ -50,6 +51,14 @@ function App() {
           element={
             <PrivateRoute>
               <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/audit-logs"
+          element={
+            <PrivateRoute>
+              <AuditLogs />
             </PrivateRoute>
           }
         />

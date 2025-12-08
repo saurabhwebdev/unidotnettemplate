@@ -29,6 +29,11 @@ export interface AssignRolesRequest {
   roleIds: string[];
 }
 
+export interface UpdateAvatarRequest {
+  avatarUrl: string | null;
+  avatarColor: string | null;
+}
+
 class UsersService {
   async getAllUsers(): Promise<UserWithRoles[]> {
     const response = await api.get<UserWithRoles[]>('/users');
@@ -56,6 +61,11 @@ class UsersService {
 
   async assignRoles(userId: string, data: AssignRolesRequest): Promise<UserWithRoles> {
     const response = await api.post<UserWithRoles>(`/users/${userId}/roles`, data);
+    return response.data;
+  }
+
+  async updateAvatar(userId: string, data: UpdateAvatarRequest): Promise<UserWithRoles> {
+    const response = await api.put<UserWithRoles>(`/users/${userId}/avatar`, data);
     return response.data;
   }
 }

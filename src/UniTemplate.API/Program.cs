@@ -42,6 +42,7 @@ builder.Services.AddScoped<UniTemplate.Core.Interfaces.ITokenService, UniTemplat
 builder.Services.AddScoped<UniTemplate.Core.Interfaces.IAuthService, UniTemplate.Data.Services.AuthService>();
 builder.Services.AddScoped<UniTemplate.Core.Interfaces.IRoleService, UniTemplate.Data.Services.RoleService>();
 builder.Services.AddScoped<UniTemplate.Core.Interfaces.IUserService, UniTemplate.Data.Services.UserService>();
+builder.Services.AddScoped<UniTemplate.Core.Interfaces.IAuditLogService, UniTemplate.Data.Services.AuditLogService>();
 
 // Add Email Service based on provider
 if (emailSettings.Provider.Equals("MicrosoftGraph", StringComparison.OrdinalIgnoreCase))

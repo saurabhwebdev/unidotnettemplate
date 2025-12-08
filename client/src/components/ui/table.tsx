@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { colors } from '../../config/theme.config';
 
 interface TableProps {

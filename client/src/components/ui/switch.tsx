@@ -24,7 +24,6 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         `}
         style={{
           backgroundColor: checked ? colors.primary : '#cbd5e1',
-          focusRingColor: colors.primary
         }}
       >
         <span

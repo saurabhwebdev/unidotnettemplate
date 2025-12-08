@@ -14,12 +14,14 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IEmailService _emailService;
+    private readonly IAuditLogService _auditLogService;
     private readonly AppDbContext _context;
 
-    public AuthController(IAuthService authService, IEmailService emailService, AppDbContext context)
+    public AuthController(IAuthService authService, IEmailService emailService, IAuditLogService auditLogService, AppDbContext context)
     {
         _authService = authService;
         _emailService = emailService;
+        _auditLogService = auditLogService;
         _context = context;
     }
 
@@ -35,8 +37,15 @@ public class AuthController : ControllerBase
 
         if (result == null)
         {
+            await _auditLogService.LogActionAsync(null, request.Email, "Register", "User",
+                null, null, new { Email = request.Email, FirstName = request.FirstName, LastName = request.LastName },
+                GetClientIpAddress(), GetUserAgent(), "Registration failed - email already exists", false, "User with this email already exists");
             return BadRequest(new { message = "User with this email already exists" });
         }
+
+        await _auditLogService.LogActionAsync(result.User.Id, result.User.Email, "Register", "User",
+            result.User.Id.ToString(), null, new { Email = result.User.Email, FirstName = result.User.FirstName, LastName = result.User.LastName },
+            GetClientIpAddress(), GetUserAgent(), "New user registered successfully");
 
         return Ok(result);
     }
@@ -53,8 +62,13 @@ public class AuthController : ControllerBase
 
         if (result == null)
         {
+            await _auditLogService.LogActionAsync(null, request.Email, "Login", "User",
+                null, null, null, GetClientIpAddress(), GetUserAgent(), "Login failed - invalid credentials", false, "Invalid email or password");
             return Unauthorized(new { message = "Invalid email or password" });
         }
+
+        await _auditLogService.LogActionAsync(result.User.Id, result.User.Email, "Login", "User",
+            result.User.Id.ToString(), null, null, GetClientIpAddress(), GetUserAgent(), "User logged in successfully");
 
         // Send login alert email in background
         _ = Task.Run(async () =>
@@ -85,8 +99,13 @@ public class AuthController : ControllerBase
 
         if (result == null)
         {
+            await _auditLogService.LogActionAsync(null, request.Email, "MicrosoftLogin", "User",
+                null, null, null, GetClientIpAddress(), GetUserAgent(), "Microsoft login failed", false, "Microsoft login failed");
             return Unauthorized(new { message = "Microsoft login failed" });
         }
+
+        await _auditLogService.LogActionAsync(result.User.Id, result.User.Email, "MicrosoftLogin", "User",
+            result.User.Id.ToString(), null, null, GetClientIpAddress(), GetUserAgent(), "User logged in via Microsoft SSO");
 
         // Send login alert email in background
         _ = Task.Run(async () =>
@@ -125,25 +144,40 @@ public class AuthController : ControllerBase
 
     [Authorize]
     [HttpGet("me")]
-    public IActionResult GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
         var firstName = User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value;
         var lastName = User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value;
 
+        // Get avatar info from database
+        string? avatarUrl = null;
+        string? avatarColor = null;
+        if (Guid.TryParse(userId, out var userGuid))
+        {
+            var user = await _context.Users.FindAsync(userGuid);
+            if (user != null)
+            {
+                avatarUrl = user.AvatarUrl;
+                avatarColor = user.AvatarColor;
+            }
+        }
+
         return Ok(new
         {
             id = userId,
             email,
             firstName,
-            lastName
+            lastName,
+            avatarUrl,
+            avatarColor
         });
     }
 
     [Authorize]
     [HttpPost("logout")]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
@@ -152,6 +186,9 @@ public class AuthController : ControllerBase
 
         if (Guid.TryParse(userId, out var userGuid) && !string.IsNullOrEmpty(email))
         {
+            await _auditLogService.LogActionAsync(userGuid, email, "Logout", "User",
+                userGuid.ToString(), null, null, GetClientIpAddress(), GetUserAgent(), "User logged out");
+
             // Send logout alert email in background
             _ = Task.Run(async () =>
             {
@@ -216,6 +253,11 @@ public class AuthController : ControllerBase
         }
 
         return ipAddress ?? "Unknown";
+    }
+
+    private string? GetUserAgent()
+    {
+        return Request.Headers["User-Agent"].FirstOrDefault();
     }
 
     private async Task SendLoginAlertIfEnabled(Guid userId, string email, string userName, string ipAddress)

@@ -77,4 +77,14 @@ public class UsersController : ControllerBase
 
         return Ok(user);
     }
+
+    [HttpPut("{id}/avatar")]
+    public async Task<ActionResult<UserDto>> UpdateAvatar(Guid id, [FromBody] UpdateAvatarDto dto)
+    {
+        var user = await _userService.UpdateAvatarAsync(id, dto);
+        if (user == null)
+            return NotFound(new { message = "User not found" });
+
+        return Ok(user);
+    }
 }

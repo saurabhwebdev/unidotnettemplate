@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -8,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../com
 import { colors } from '../config/theme.config';
 import { api } from '../services/api';
 import { emailPreferencesService, type EmailPreference } from '../services/emailPreferences.service';
-import { Mail, Send, CheckCircle, XCircle, Loader, Bell, HelpCircle, LogIn, LogOut, Lock, AtSign, User as UserIcon, Shield, ChevronDown } from 'lucide-react';
+import { Mail, Send, CheckCircle, XCircle, Loader, Bell, HelpCircle, LogIn, LogOut, Lock, AtSign, User as UserIcon, Shield, ChevronDown, ClipboardList } from 'lucide-react';
 
 const getIconForAlertType = (alertTypeName: string) => {
   switch (alertTypeName) {
@@ -30,6 +31,7 @@ const getIconForAlertType = (alertTypeName: string) => {
 };
 
 export function Settings() {
+  const navigate = useNavigate();
   const [testEmail, setTestEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -184,6 +186,30 @@ export function Settings() {
                 )}
               </div>
             </CardContent>}
+          </Card>
+
+          {/* Audit Logs Card */}
+          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2" style={{ color: colors.textPrimary }}>
+                    <ClipboardList size={20} />
+                    Audit Logs
+                  </CardTitle>
+                  <CardDescription style={{ color: colors.textMuted }}>
+                    View system activity and user action history
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={() => navigate('/audit-logs')}
+                  style={{ backgroundColor: colors.primary }}
+                  className="text-white hover:opacity-90 transition-all flex items-center gap-2"
+                >
+                  View Logs
+                </Button>
+              </div>
+            </CardHeader>
           </Card>
 
           {/* Email Testing Card */}

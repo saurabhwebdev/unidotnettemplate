@@ -10,4 +10,5 @@ public interface IUserService
     Task<UserDto?> UpdateUserAsync(Guid id, UpdateUserDto dto);
     Task<bool> DeleteUserAsync(Guid id);
     Task<UserDto?> AssignRolesToUserAsync(Guid userId, AssignRolesDto dto);
+    Task<UserDto?> UpdateAvatarAsync(Guid userId, UpdateAvatarDto dto);
 }

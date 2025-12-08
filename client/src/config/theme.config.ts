@@ -21,6 +21,7 @@ export const themeConfig = {
     // Background colors
     bgPrimary: '#ffffff',
     bgSecondary: '#f8fafb',
+    bgTertiary: '#e8ecf0',
     bgHover: '#f1f5f8',
 
     // Border colors

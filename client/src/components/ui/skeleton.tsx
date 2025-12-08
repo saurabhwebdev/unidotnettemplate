@@ -95,15 +95,15 @@ export function SkeletonStats() {
 }
 
 export function SkeletonChart() {
+  const heights = [60, 75, 45, 85, 50, 70, 55, 80, 65, 45, 72, 58];
   return (
     <div className="space-y-4 p-6">
       <Skeleton className="h-6 w-1/3" />
       <div className="flex items-end justify-between gap-2 h-64">
-        {[...Array(12)].map((_, i) => (
+        {heights.map((height, i) => (
           <Skeleton
             key={i}
-            className="w-full"
-            style={{ height: `${Math.random() * 60 + 40}%` }}
+            className={`w-full h-[${height}%]`}
           />
         ))}
       </div>

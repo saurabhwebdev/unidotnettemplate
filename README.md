@@ -116,6 +116,8 @@
 ✅ User management dashboard with CRUD operations
 ✅ Email service integration (SMTP + Microsoft Graph)
 ✅ Password reset flow with secure tokens
+✅ Comprehensive audit logging system
+✅ Customizable user avatars (6 styles, 6 color palettes)
 ✅ Modern React UI with Tailwind CSS
 ✅ Responsive design for all devices
 ✅ Dark theme with customizable colors
@@ -228,7 +230,7 @@ From MVP to millions of users. The architecture supports horizontal scaling and 
 | User Registration | ✅ |
 | User Login/Logout | ✅ |
 | Profile Management | ✅ |
-| Avatar Upload | 🔜 |
+| Avatar Customization | ✅ |
 | User CRUD Operations | ✅ |
 | User Search & Filter | ✅ |
 | Pagination | ✅ |
@@ -257,7 +259,7 @@ From MVP to millions of users. The architecture supports horizontal scaling and 
 | Route-based Access | ✅ |
 | API-level Authorization | ✅ |
 | Admin Dashboard | ✅ |
-| Audit Logging | 🔜 |
+| Audit Logging | ✅ |
 | Permission Groups | 🔜 |
 
 </td>
@@ -1743,6 +1745,162 @@ Authorization: Bearer <access_token>
   ]
 }
 ```
+
+</details>
+
+<details>
+<summary><h4>📋 Audit Logs Endpoints</h4></summary>
+
+<br />
+
+#### Get Audit Logs (Paginated)
+
+```http
+GET /api/auditlogs?page=1&pageSize=20
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `page` | int | Page number (default: 1) |
+| `pageSize` | int | Items per page (default: 20, max: 100) |
+| `userId` | guid | Filter by user ID |
+| `action` | string | Filter by action type |
+| `entityType` | string | Filter by entity type |
+| `startDate` | datetime | Filter from date |
+| `endDate` | datetime | Filter to date |
+| `isSuccess` | bool | Filter by success status |
+
+**Response:** `200 OK`
+```json
+{
+  "items": [
+    {
+      "id": "log-id-1",
+      "userId": "user-id",
+      "userEmail": "user@example.com",
+      "action": "Login",
+      "entityType": "User",
+      "entityId": "user-id",
+      "ipAddress": "192.168.1.1",
+      "userAgent": "Mozilla/5.0...",
+      "isSuccess": true,
+      "createdAt": "2024-12-08T10:30:00Z"
+    }
+  ],
+  "totalCount": 150,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 8
+}
+```
+
+---
+
+#### Get Single Audit Log
+
+```http
+GET /api/auditlogs/{id}
+Authorization: Bearer <access_token>
+```
+
+**Response:** `200 OK`
+```json
+{
+  "id": "log-id-1",
+  "userId": "user-id",
+  "userEmail": "user@example.com",
+  "action": "UserUpdated",
+  "entityType": "User",
+  "entityId": "target-user-id",
+  "oldValues": "{\"name\": \"Old Name\"}",
+  "newValues": "{\"name\": \"New Name\"}",
+  "ipAddress": "192.168.1.1",
+  "userAgent": "Mozilla/5.0...",
+  "additionalInfo": "Profile update",
+  "isSuccess": true,
+  "createdAt": "2024-12-08T10:30:00Z"
+}
+```
+
+---
+
+#### Get Audit Log Actions
+
+```http
+GET /api/auditlogs/actions
+Authorization: Bearer <access_token>
+```
+
+**Response:** `200 OK`
+```json
+[
+  "Login",
+  "Logout",
+  "Register",
+  "UserCreated",
+  "UserUpdated",
+  "UserDeleted",
+  "RoleAssigned",
+  "PasswordChanged"
+]
+```
+
+---
+
+#### Get Audit Log Entity Types
+
+```http
+GET /api/auditlogs/entity-types
+Authorization: Bearer <access_token>
+```
+
+**Response:** `200 OK`
+```json
+[
+  "User",
+  "Role",
+  "Settings",
+  "Authentication"
+]
+```
+
+</details>
+
+<details>
+<summary><h4>🖼️ Avatar Endpoints</h4></summary>
+
+<br />
+
+#### Update User Avatar
+
+```http
+PUT /api/users/avatar
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "avatarUrl": "marble",
+  "avatarColor": "#4F46E5,#7C3AED,#EC4899,#F59E0B,#10B981"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "id": "user-id",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "avatarUrl": "marble",
+  "avatarColor": "#4F46E5,#7C3AED,#EC4899,#F59E0B,#10B981"
+}
+```
+
+> **Note:** Avatar uses [boring-avatars](https://boringavatars.com/) library. The `avatarUrl` field stores the avatar variant (marble, beam, pixel, sunset, ring, bauhaus) and `avatarColor` stores the color palette.
 
 </details>
 

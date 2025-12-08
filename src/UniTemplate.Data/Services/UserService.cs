@@ -25,6 +25,8 @@ public class UserService : IUserService
                 Email = u.Email,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
+                AvatarUrl = u.AvatarUrl,
+                AvatarColor = u.AvatarColor,
                 IsActive = u.IsActive,
                 CreatedAt = u.CreatedAt,
                 Roles = u.UserRoles.Select(ur => new RoleDto
@@ -54,6 +56,8 @@ public class UserService : IUserService
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
+            AvatarUrl = user.AvatarUrl,
+            AvatarColor = user.AvatarColor,
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt,
             Roles = user.UserRoles.Select(ur => new RoleDto
@@ -142,6 +146,19 @@ public class UserService : IUserService
                 RoleId = roleId
             });
         }
+
+        await _context.SaveChangesAsync();
+
+        return await GetUserByIdAsync(userId);
+    }
+
+    public async Task<UserDto?> UpdateAvatarAsync(Guid userId, UpdateAvatarDto dto)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return null;
+
+        user.AvatarUrl = dto.AvatarUrl;
+        user.AvatarColor = dto.AvatarColor;
 
         await _context.SaveChangesAsync();
 
