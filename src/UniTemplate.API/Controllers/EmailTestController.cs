@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using UniTemplate.Core.Configuration;
 using UniTemplate.Core.Interfaces;
 using UniTemplate.Core.Models;
 
@@ -9,10 +11,47 @@ namespace UniTemplate.API.Controllers;
 public class EmailTestController : ControllerBase
 {
     private readonly IEmailService _emailService;
+    private readonly EmailSettings _emailSettings;
 
-    public EmailTestController(IEmailService emailService)
+    public EmailTestController(IEmailService emailService, IOptions<EmailSettings> emailSettings)
     {
         _emailService = emailService;
+        _emailSettings = emailSettings.Value;
+    }
+
+    [HttpGet("settings")]
+    public IActionResult GetEmailSettings()
+    {
+        var settings = new
+        {
+            provider = _emailSettings.Provider,
+            fromEmail = _emailSettings.FromEmail,
+            fromName = _emailSettings.FromName,
+            smtp = _emailSettings.Provider == "Smtp" ? new
+            {
+                host = _emailSettings.Smtp.Host,
+                port = _emailSettings.Smtp.Port,
+                enableSsl = _emailSettings.Smtp.EnableSsl,
+                username = MaskString(_emailSettings.Smtp.Username),
+                hasPassword = !string.IsNullOrEmpty(_emailSettings.Smtp.Password)
+            } : null,
+            microsoftGraph = _emailSettings.Provider == "MicrosoftGraph" ? new
+            {
+                tenantId = MaskString(_emailSettings.MicrosoftGraph.TenantId),
+                clientId = MaskString(_emailSettings.MicrosoftGraph.ClientId),
+                hasClientSecret = !string.IsNullOrEmpty(_emailSettings.MicrosoftGraph.ClientSecret),
+                fromEmail = _emailSettings.MicrosoftGraph.FromEmail
+            } : null
+        };
+
+        return Ok(settings);
+    }
+
+    private static string MaskString(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return "";
+        if (value.Length <= 4) return "****";
+        return value.Substring(0, 2) + "****" + value.Substring(value.Length - 2);
     }
 
     [HttpPost("send-test")]

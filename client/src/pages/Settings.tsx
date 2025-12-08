@@ -9,7 +9,26 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../com
 import { colors } from '../config/theme.config';
 import { api } from '../services/api';
 import { emailPreferencesService, type EmailPreference } from '../services/emailPreferences.service';
-import { Mail, Send, CheckCircle, XCircle, Loader, Bell, HelpCircle, LogIn, LogOut, Lock, AtSign, User as UserIcon, Shield, ChevronDown, ClipboardList } from 'lucide-react';
+import { Mail, Send, CheckCircle, XCircle, Loader, Bell, HelpCircle, LogIn, LogOut, Lock, AtSign, User as UserIcon, Shield, ChevronDown, ClipboardList, Info, Settings as SettingsIcon, Server, Globe, KeyRound } from 'lucide-react';
+
+interface EmailSettingsInfo {
+  provider: string;
+  fromEmail: string;
+  fromName: string;
+  smtp?: {
+    host: string;
+    port: number;
+    enableSsl: boolean;
+    username: string;
+    hasPassword: boolean;
+  };
+  microsoftGraph?: {
+    tenantId: string;
+    clientId: string;
+    hasClientSecret: boolean;
+    fromEmail: string;
+  };
+}
 
 const getIconForAlertType = (alertTypeName: string) => {
   switch (alertTypeName) {
@@ -40,10 +59,30 @@ export function Settings() {
   const [updatingPreference, setUpdatingPreference] = useState<number | null>(null);
   const [notificationsExpanded, setNotificationsExpanded] = useState(false);
   const [testEmailExpanded, setTestEmailExpanded] = useState(false);
+  const [emailSettings, setEmailSettings] = useState<EmailSettingsInfo | null>(null);
+  const [loadingEmailSettings, setLoadingEmailSettings] = useState(false);
 
   useEffect(() => {
     loadPreferences();
   }, []);
+
+  useEffect(() => {
+    if (testEmailExpanded && !emailSettings) {
+      loadEmailSettings();
+    }
+  }, [testEmailExpanded]);
+
+  const loadEmailSettings = async () => {
+    setLoadingEmailSettings(true);
+    try {
+      const response = await api.get<EmailSettingsInfo>('/emailtest/settings');
+      setEmailSettings(response.data);
+    } catch (error) {
+      console.error('Failed to load email settings:', error);
+    } finally {
+      setLoadingEmailSettings(false);
+    }
+  };
 
   const loadPreferences = async () => {
     try {
@@ -98,7 +137,63 @@ export function Settings() {
   return (
     <DashboardLayout>
       <TooltipProvider>
-        <div className="grid gap-6 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
+          {/* Page Header with Quick Actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: colors.textPrimary }}>
+                <SettingsIcon size={24} />
+                Settings
+              </h1>
+              <p className="text-sm mt-1" style={{ color: colors.textMuted }}>
+                Manage your preferences and application settings
+              </p>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => navigate('/audit-logs')}
+                    className="p-2.5 rounded-lg transition-all hover:scale-105 flex items-center gap-2"
+                    style={{
+                      backgroundColor: colors.bgSecondary,
+                      border: `1px solid ${colors.border}`,
+                      color: colors.textPrimary
+                    }}
+                  >
+                    <ClipboardList size={18} />
+                    <span className="text-sm font-medium hidden sm:inline">Audit Logs</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p className="text-xs">View system activity and user action history</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => navigate('/version')}
+                    className="p-2.5 rounded-lg transition-all hover:scale-105 flex items-center gap-2"
+                    style={{
+                      backgroundColor: colors.bgSecondary,
+                      border: `1px solid ${colors.border}`,
+                      color: colors.textPrimary
+                    }}
+                  >
+                    <Info size={18} />
+                    <span className="text-sm font-medium hidden sm:inline">Version</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p className="text-xs">View application version and technology stack</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
           {/* Email Notifications Section */}
           <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
             <CardHeader
@@ -188,30 +283,6 @@ export function Settings() {
             </CardContent>}
           </Card>
 
-          {/* Audit Logs Card */}
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2" style={{ color: colors.textPrimary }}>
-                    <ClipboardList size={20} />
-                    Audit Logs
-                  </CardTitle>
-                  <CardDescription style={{ color: colors.textMuted }}>
-                    View system activity and user action history
-                  </CardDescription>
-                </div>
-                <Button
-                  onClick={() => navigate('/audit-logs')}
-                  style={{ backgroundColor: colors.primary }}
-                  className="text-white hover:opacity-90 transition-all flex items-center gap-2"
-                >
-                  View Logs
-                </Button>
-              </div>
-            </CardHeader>
-          </Card>
-
           {/* Email Testing Card */}
           <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
             <CardHeader
@@ -237,34 +308,132 @@ export function Settings() {
             </CardHeader>
             {testEmailExpanded && <CardContent>
               <div className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    type="email"
-                    value={testEmail}
-                    onChange={(e) => setTestEmail(e.target.value)}
-                    placeholder="Enter email address"
-                    disabled={sending}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendTestEmail()}
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={handleSendTestEmail}
-                    disabled={sending || !testEmail}
-                    style={{ backgroundColor: colors.primary }}
-                    className="text-white hover:opacity-90 transition-all flex items-center gap-2"
-                  >
-                    {sending ? (
-                      <>
-                        <Loader size={16} className="animate-spin" />
-                        Sending
-                      </>
-                    ) : (
-                      <>
-                        <Send size={16} />
-                        Send
-                      </>
-                    )}
-                  </Button>
+                {/* Email Configuration Display */}
+                {loadingEmailSettings ? (
+                  <div className="p-4 rounded-lg animate-pulse" style={{ backgroundColor: colors.bgSecondary }}>
+                    <div className="h-4 w-32 bg-gray-200 rounded mb-3" />
+                    <div className="space-y-2">
+                      <div className="h-3 w-full bg-gray-200 rounded" />
+                      <div className="h-3 w-3/4 bg-gray-200 rounded" />
+                      <div className="h-3 w-1/2 bg-gray-200 rounded" />
+                    </div>
+                  </div>
+                ) : emailSettings && (
+                  <div className="p-4 rounded-lg" style={{ backgroundColor: colors.bgSecondary }}>
+                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: colors.textPrimary }}>
+                      <Server size={16} />
+                      Current Email Configuration
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2">
+                        <Globe size={14} style={{ color: colors.textMuted }} />
+                        <span className="text-xs" style={{ color: colors.textMuted }}>Provider:</span>
+                        <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
+                          {emailSettings.provider}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail size={14} style={{ color: colors.textMuted }} />
+                        <span className="text-xs" style={{ color: colors.textMuted }}>From:</span>
+                        <span className="text-xs font-medium" style={{ color: colors.textPrimary }}>
+                          {emailSettings.fromName ? `${emailSettings.fromName} <${emailSettings.fromEmail}>` : emailSettings.fromEmail}
+                        </span>
+                      </div>
+                      {emailSettings.smtp && (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Server size={14} style={{ color: colors.textMuted }} />
+                            <span className="text-xs" style={{ color: colors.textMuted }}>Host:</span>
+                            <span className="text-xs font-medium" style={{ color: colors.textPrimary }}>
+                              {emailSettings.smtp.host}:{emailSettings.smtp.port}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <KeyRound size={14} style={{ color: colors.textMuted }} />
+                            <span className="text-xs" style={{ color: colors.textMuted }}>SSL:</span>
+                            <span className={`text-xs font-medium ${emailSettings.smtp.enableSsl ? 'text-green-600' : 'text-red-600'}`}>
+                              {emailSettings.smtp.enableSsl ? 'Enabled' : 'Disabled'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <UserIcon size={14} style={{ color: colors.textMuted }} />
+                            <span className="text-xs" style={{ color: colors.textMuted }}>Username:</span>
+                            <span className="text-xs font-medium" style={{ color: colors.textPrimary }}>
+                              {emailSettings.smtp.username || 'Not set'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Lock size={14} style={{ color: colors.textMuted }} />
+                            <span className="text-xs" style={{ color: colors.textMuted }}>Password:</span>
+                            <span className={`text-xs font-medium ${emailSettings.smtp.hasPassword ? 'text-green-600' : 'text-red-600'}`}>
+                              {emailSettings.smtp.hasPassword ? 'Configured' : 'Not set'}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                      {emailSettings.microsoftGraph && (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Server size={14} style={{ color: colors.textMuted }} />
+                            <span className="text-xs" style={{ color: colors.textMuted }}>Tenant ID:</span>
+                            <span className="text-xs font-medium" style={{ color: colors.textPrimary }}>
+                              {emailSettings.microsoftGraph.tenantId}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <KeyRound size={14} style={{ color: colors.textMuted }} />
+                            <span className="text-xs" style={{ color: colors.textMuted }}>Client ID:</span>
+                            <span className="text-xs font-medium" style={{ color: colors.textPrimary }}>
+                              {emailSettings.microsoftGraph.clientId}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Lock size={14} style={{ color: colors.textMuted }} />
+                            <span className="text-xs" style={{ color: colors.textMuted }}>Client Secret:</span>
+                            <span className={`text-xs font-medium ${emailSettings.microsoftGraph.hasClientSecret ? 'text-green-600' : 'text-red-600'}`}>
+                              {emailSettings.microsoftGraph.hasClientSecret ? 'Configured' : 'Not set'}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Send Test Email Form */}
+                <div className="pt-2">
+                  <h4 className="text-sm font-medium mb-3" style={{ color: colors.textPrimary }}>
+                    Send a Test Email
+                  </h4>
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      placeholder="Enter email address"
+                      disabled={sending}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendTestEmail()}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={handleSendTestEmail}
+                      disabled={sending || !testEmail}
+                      style={{ backgroundColor: colors.primary }}
+                      className="text-white hover:opacity-90 transition-all flex items-center gap-2"
+                    >
+                      {sending ? (
+                        <>
+                          <Loader size={16} className="animate-spin" />
+                          Sending
+                        </>
+                      ) : (
+                        <>
+                          <Send size={16} />
+                          Send
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
                 {result && (
