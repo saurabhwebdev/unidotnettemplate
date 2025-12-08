@@ -19,6 +19,7 @@ public class UserService : IUserService
         return await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
+            .Include(u => u.ReportsTo)
             .Select(u => new UserDto
             {
                 Id = u.Id,
@@ -28,6 +29,14 @@ public class UserService : IUserService
                 AvatarUrl = u.AvatarUrl,
                 AvatarColor = u.AvatarColor,
                 IsActive = u.IsActive,
+                EmployeeId = u.EmployeeId,
+                Designation = u.Designation,
+                Department = u.Department,
+                PhoneNumber = u.PhoneNumber,
+                OfficeLocation = u.OfficeLocation,
+                DateOfJoining = u.DateOfJoining,
+                ReportsToId = u.ReportsToId,
+                ReportsToName = u.ReportsTo != null ? u.ReportsTo.FirstName + " " + u.ReportsTo.LastName : null,
                 CreatedAt = u.CreatedAt,
                 Roles = u.UserRoles.Select(ur => new RoleDto
                 {
@@ -46,6 +55,7 @@ public class UserService : IUserService
         var user = await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
+            .Include(u => u.ReportsTo)
             .FirstOrDefaultAsync(u => u.Id == id);
 
         if (user == null) return null;
@@ -59,6 +69,14 @@ public class UserService : IUserService
             AvatarUrl = user.AvatarUrl,
             AvatarColor = user.AvatarColor,
             IsActive = user.IsActive,
+            EmployeeId = user.EmployeeId,
+            Designation = user.Designation,
+            Department = user.Department,
+            PhoneNumber = user.PhoneNumber,
+            OfficeLocation = user.OfficeLocation,
+            DateOfJoining = user.DateOfJoining,
+            ReportsToId = user.ReportsToId,
+            ReportsToName = user.ReportsTo != null ? user.ReportsTo.FirstName + " " + user.ReportsTo.LastName : null,
             CreatedAt = user.CreatedAt,
             Roles = user.UserRoles.Select(ur => new RoleDto
             {
@@ -79,7 +97,14 @@ public class UserService : IUserService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             FirstName = dto.FirstName,
             LastName = dto.LastName,
-            IsActive = true
+            IsActive = true,
+            EmployeeId = dto.EmployeeId,
+            Designation = dto.Designation,
+            Department = dto.Department,
+            PhoneNumber = dto.PhoneNumber,
+            OfficeLocation = dto.OfficeLocation,
+            DateOfJoining = dto.DateOfJoining,
+            ReportsToId = dto.ReportsToId
         };
 
         _context.Users.Add(user);
@@ -110,6 +135,13 @@ public class UserService : IUserService
         user.FirstName = dto.FirstName;
         user.LastName = dto.LastName;
         user.IsActive = dto.IsActive;
+        user.EmployeeId = dto.EmployeeId;
+        user.Designation = dto.Designation;
+        user.Department = dto.Department;
+        user.PhoneNumber = dto.PhoneNumber;
+        user.OfficeLocation = dto.OfficeLocation;
+        user.DateOfJoining = dto.DateOfJoining;
+        user.ReportsToId = dto.ReportsToId;
 
         await _context.SaveChangesAsync();
 

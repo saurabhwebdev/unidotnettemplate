@@ -96,68 +96,73 @@ export default function AuditLogs() {
           className="rounded-xl p-4"
           style={{ backgroundColor: colors.bgPrimary, border: `1px solid ${colors.border}` }}
         >
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* Search */}
-          <div className="md:col-span-2">
-            <input
-              type="text"
-              placeholder="Search by email, action, entity..."
-              value={filter.search}
-              onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-              onKeyPress={handleKeyPress}
-              className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
-              style={{
-                backgroundColor: colors.bgTertiary,
-                color: colors.textPrimary,
-                border: `1px solid ${colors.border}`,
-              }}
-            />
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* Search */}
+            <div className="flex-1 min-w-[200px]">
+              <input
+                type="text"
+                placeholder="Search by email, action, entity..."
+                value={filter.search}
+                onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+                onKeyPress={handleKeyPress}
+                className="w-full px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  color: colors.textPrimary,
+                  border: `1px solid ${colors.border}`,
+                }}
+              />
+            </div>
+
+            {/* Action Filter */}
+            <div className="w-[140px]">
+              <Select
+                value={filter.action}
+                onChange={(value) => setFilter({ ...filter, action: value, page: 1 })}
+                placeholder="All Actions"
+                options={actions.map((action) => ({ value: action, label: action }))}
+              />
+            </div>
+
+            {/* Entity Type Filter */}
+            <div className="w-[160px]">
+              <Select
+                value={filter.entityType}
+                onChange={(value) => setFilter({ ...filter, entityType: value, page: 1 })}
+                placeholder="All Types"
+                options={entityTypes.map((type) => ({ value: type, label: type }))}
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div className="w-[130px]">
+              <Select
+                value={filter.isSuccess === undefined ? '' : filter.isSuccess.toString()}
+                onChange={(value) =>
+                  setFilter({
+                    ...filter,
+                    isSuccess: value === '' ? undefined : value === 'true',
+                    page: 1,
+                  })
+                }
+                placeholder="All Status"
+                options={[
+                  { value: 'true', label: 'Success' },
+                  { value: 'false', label: 'Failed' },
+                ]}
+              />
+            </div>
+
+            {/* Search Button */}
+            <button
+              onClick={handleSearch}
+              className="px-5 py-2.5 rounded-lg font-medium transition-all hover:opacity-90"
+              style={{ backgroundColor: colors.primary, color: 'white' }}
+            >
+              Search
+            </button>
           </div>
-
-          {/* Action Filter */}
-          <Select
-            value={filter.action}
-            onChange={(value) => setFilter({ ...filter, action: value, page: 1 })}
-            placeholder="All Actions"
-            options={actions.map((action) => ({ value: action, label: action }))}
-          />
-
-          {/* Entity Type Filter */}
-          <Select
-            value={filter.entityType}
-            onChange={(value) => setFilter({ ...filter, entityType: value, page: 1 })}
-            placeholder="All Entity Types"
-            options={entityTypes.map((type) => ({ value: type, label: type }))}
-          />
-
-          {/* Status Filter */}
-          <Select
-            value={filter.isSuccess === undefined ? '' : filter.isSuccess.toString()}
-            onChange={(value) =>
-              setFilter({
-                ...filter,
-                isSuccess: value === '' ? undefined : value === 'true',
-                page: 1,
-              })
-            }
-            placeholder="All Status"
-            options={[
-              { value: 'true', label: 'Success' },
-              { value: 'false', label: 'Failed' },
-            ]}
-          />
         </div>
-
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={handleSearch}
-            className="px-4 py-2 rounded-lg font-medium transition-colors"
-            style={{ backgroundColor: colors.primary, color: 'white' }}
-          >
-            Search
-          </button>
-        </div>
-      </div>
 
       {/* Table */}
       <div

@@ -234,9 +234,15 @@ From MVP to millions of users. The architecture supports horizontal scaling and 
 | User CRUD Operations | ✅ |
 | User Search & Filter | ✅ |
 | Pagination | ✅ |
-| Bulk Operations | 🔜 |
+| Enterprise Fields | ✅ |
+| Employee ID & Designation | ✅ |
+| Department & Office Location | ✅ |
+| Manager Hierarchy (Reports To) | ✅ |
+| Date of Joining | ✅ |
+| Send User Details Email | ✅ |
 | User Activity Log | ✅ |
 | Account Deactivation | ✅ |
+| Bulk Operations | 🔜 |
 | Data Export (GDPR) | 🔜 |
 | User Impersonation | 🔜 |
 
@@ -1479,7 +1485,15 @@ Authorization: Bearer <access_token>
       "email": "user@example.com",
       "firstName": "John",
       "lastName": "Doe",
-      "roles": ["User"],
+      "employeeId": "EMP001",
+      "designation": "Software Engineer",
+      "department": "Engineering",
+      "phoneNumber": "+1234567890",
+      "officeLocation": "New York, Floor 5",
+      "dateOfJoining": "2024-01-15T00:00:00Z",
+      "reportsToId": "uuid-of-manager",
+      "reportsToName": "Jane Smith",
+      "roles": [{"id": "...", "name": "User"}],
       "createdAt": "2024-12-01T10:00:00Z",
       "isActive": true
     }

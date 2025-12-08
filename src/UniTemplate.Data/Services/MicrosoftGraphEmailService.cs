@@ -346,4 +346,128 @@ public class MicrosoftGraphEmailService : IEmailService
             </html>
         ";
     }
+
+    public async Task SendUserDetailsEmailAsync(string toEmail, string userName, UserDetailsForEmail userDetails)
+    {
+        var message = new EmailMessage
+        {
+            To = new List<string> { toEmail },
+            Subject = "Your Account Details",
+            Body = GetUserDetailsEmailBody(userName, userDetails),
+            IsHtml = true
+        };
+
+        await SendEmailAsync(message);
+    }
+
+    private string GetUserDetailsEmailBody(string userName, UserDetailsForEmail details)
+    {
+        var rolesHtml = details.Roles.Any()
+            ? string.Join("", details.Roles.Select(r => $"<span style='display:inline-block;background-color:#4F46E5;color:white;padding:4px 12px;border-radius:15px;font-size:12px;margin:2px;'>{r}</span>"))
+            : "<span style='color:#666;'>No roles assigned</span>";
+
+        return $@"
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background: linear-gradient(135deg, #4F46E5, #7C3AED); color: white; padding: 30px 20px; text-align: center; border-radius: 10px 10px 0 0; }}
+                    .header h1 {{ margin: 0; font-size: 24px; }}
+                    .content {{ padding: 30px; background-color: #ffffff; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px; }}
+                    .section {{ margin-bottom: 25px; }}
+                    .section-title {{ font-size: 14px; font-weight: bold; color: #4F46E5; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }}
+                    .info-grid {{ display: table; width: 100%; }}
+                    .info-row {{ display: table-row; }}
+                    .info-label {{ display: table-cell; padding: 8px 15px 8px 0; font-weight: 600; color: #555; width: 140px; vertical-align: top; }}
+                    .info-value {{ display: table-cell; padding: 8px 0; color: #333; }}
+                    .avatar {{ width: 80px; height: 80px; border-radius: 50%; background-color: #4F46E5; color: white; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; margin: 0 auto 15px; text-align: center; line-height: 80px; }}
+                    .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; }}
+                    .roles-container {{ margin-top: 5px; }}
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <div class='header'>
+                        <div class='avatar'>{details.FirstName[0]}{details.LastName[0]}</div>
+                        <h1>Your Account Details</h1>
+                    </div>
+                    <div class='content'>
+                        <p>Hi {userName},</p>
+                        <p>Here are your current account details:</p>
+
+                        <div class='section'>
+                            <div class='section-title'>Personal Information</div>
+                            <div class='info-grid'>
+                                <div class='info-row'>
+                                    <div class='info-label'>Full Name</div>
+                                    <div class='info-value'>{details.FirstName} {details.LastName}</div>
+                                </div>
+                                <div class='info-row'>
+                                    <div class='info-label'>Email</div>
+                                    <div class='info-value'>{details.Email}</div>
+                                </div>
+                                {(!string.IsNullOrEmpty(details.PhoneNumber) ? $@"
+                                <div class='info-row'>
+                                    <div class='info-label'>Phone</div>
+                                    <div class='info-value'>{details.PhoneNumber}</div>
+                                </div>" : "")}
+                            </div>
+                        </div>
+
+                        <div class='section'>
+                            <div class='section-title'>Employee Information</div>
+                            <div class='info-grid'>
+                                {(!string.IsNullOrEmpty(details.EmployeeId) ? $@"
+                                <div class='info-row'>
+                                    <div class='info-label'>Employee ID</div>
+                                    <div class='info-value'>{details.EmployeeId}</div>
+                                </div>" : "")}
+                                {(!string.IsNullOrEmpty(details.Designation) ? $@"
+                                <div class='info-row'>
+                                    <div class='info-label'>Designation</div>
+                                    <div class='info-value'>{details.Designation}</div>
+                                </div>" : "")}
+                                {(!string.IsNullOrEmpty(details.Department) ? $@"
+                                <div class='info-row'>
+                                    <div class='info-label'>Department</div>
+                                    <div class='info-value'>{details.Department}</div>
+                                </div>" : "")}
+                                {(!string.IsNullOrEmpty(details.OfficeLocation) ? $@"
+                                <div class='info-row'>
+                                    <div class='info-label'>Office Location</div>
+                                    <div class='info-value'>{details.OfficeLocation}</div>
+                                </div>" : "")}
+                                {(!string.IsNullOrEmpty(details.DateOfJoining) ? $@"
+                                <div class='info-row'>
+                                    <div class='info-label'>Date of Joining</div>
+                                    <div class='info-value'>{details.DateOfJoining}</div>
+                                </div>" : "")}
+                                {(!string.IsNullOrEmpty(details.ReportsToName) ? $@"
+                                <div class='info-row'>
+                                    <div class='info-label'>Reports To</div>
+                                    <div class='info-value'>{details.ReportsToName}</div>
+                                </div>" : "")}
+                            </div>
+                        </div>
+
+                        <div class='section'>
+                            <div class='section-title'>Assigned Roles</div>
+                            <div class='roles-container'>
+                                {rolesHtml}
+                            </div>
+                        </div>
+
+                        <p style='margin-top: 25px;'>If any of this information is incorrect, please contact your administrator.</p>
+                        <p>Best regards,<br>The UniTemplate Team</p>
+                    </div>
+                    <div class='footer'>
+                        This is an automated message from UniTemplate. Please do not reply to this email.
+                    </div>
+                </div>
+            </body>
+            </html>
+        ";
+    }
 }

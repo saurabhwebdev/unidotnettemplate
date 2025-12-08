@@ -1,4 +1,5 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronDown, Check } from 'lucide-react';
 import { colors } from '../../config/theme.config';
 
 interface PaginationProps {
@@ -22,8 +23,21 @@ export function Pagination({
   pageSizeOptions = [10, 20, 50, 100],
   showPageSizeSelector = true,
 }: PaginationProps) {
+  const [isPageSizeOpen, setIsPageSizeOpen] = useState(false);
+  const pageSizeRef = useRef<HTMLDivElement>(null);
+
   const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalCount);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (pageSizeRef.current && !pageSizeRef.current.contains(event.target as Node)) {
+        setIsPageSizeOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const getVisiblePages = () => {
     const pages: (number | string)[] = [];
@@ -81,27 +95,70 @@ export function Pagination({
             <span className="text-sm" style={{ color: colors.textMuted }}>
               per page:
             </span>
-            <div className="relative">
-              <select
-                value={pageSize}
-                onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                className="appearance-none px-3 py-1.5 pr-8 rounded-lg text-sm font-medium cursor-pointer outline-none transition-all"
+            <div ref={pageSizeRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setIsPageSizeOpen(!isPageSizeOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-all"
+                style={{
+                  backgroundColor: colors.bgPrimary,
+                  border: `1px solid ${isPageSizeOpen ? colors.primary : colors.border}`,
+                  color: colors.textPrimary,
+                  boxShadow: isPageSizeOpen ? `0 0 0 3px ${colors.primary}20` : 'none',
+                }}
+              >
+                {pageSize}
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${isPageSizeOpen ? 'rotate-180' : ''}`}
+                  style={{ color: colors.textMuted }}
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              <div
+                className={`absolute bottom-full left-0 mb-1 rounded-lg shadow-lg overflow-hidden transition-all duration-200 origin-bottom z-50 ${
+                  isPageSizeOpen
+                    ? 'opacity-100 scale-y-100 translate-y-0'
+                    : 'opacity-0 scale-y-95 translate-y-1 pointer-events-none'
+                }`}
                 style={{
                   backgroundColor: colors.bgPrimary,
                   border: `1px solid ${colors.border}`,
-                  color: colors.textPrimary,
+                  boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
+                  minWidth: '80px',
                 }}
               >
-                {pageSizeOptions.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                style={{ color: colors.textMuted }}
-              />
+                <div className="py-1">
+                  {pageSizeOptions.map((size) => {
+                    const isSelected = size === pageSize;
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          onPageSizeChange(size);
+                          setIsPageSizeOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 text-sm transition-colors"
+                        style={{
+                          color: isSelected ? colors.primary : colors.textPrimary,
+                          backgroundColor: isSelected ? `${colors.primary}10` : 'transparent',
+                          fontWeight: isSelected ? 500 : 400,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) e.currentTarget.style.backgroundColor = colors.bgHover;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = isSelected ? `${colors.primary}10` : 'transparent';
+                        }}
+                      >
+                        <span>{size}</span>
+                        {isSelected && <Check className="w-3 h-3" style={{ color: colors.primary }} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         )}

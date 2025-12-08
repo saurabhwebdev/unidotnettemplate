@@ -209,10 +209,25 @@ namespace UniTemplate.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<DateTime?>("DateOfJoining")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Designation")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("EmployeeId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -227,15 +242,26 @@ namespace UniTemplate.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("OfficeLocation")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("RefreshTokenExpiryTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReportsToId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -246,6 +272,12 @@ namespace UniTemplate.Data.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("EmployeeId")
+                        .IsUnique()
+                        .HasFilter("[EmployeeId] IS NOT NULL");
+
+                    b.HasIndex("ReportsToId");
 
                     b.ToTable("Users");
                 });
@@ -336,6 +368,16 @@ namespace UniTemplate.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("UniTemplate.Core.Entities.User", b =>
+                {
+                    b.HasOne("UniTemplate.Core.Entities.User", "ReportsTo")
+                        .WithMany("DirectReports")
+                        .HasForeignKey("ReportsToId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ReportsTo");
+                });
+
             modelBuilder.Entity("UniTemplate.Core.Entities.UserRole", b =>
                 {
                     b.HasOne("UniTemplate.Core.Entities.Role", "Role")
@@ -373,6 +415,8 @@ namespace UniTemplate.Data.Migrations
 
             modelBuilder.Entity("UniTemplate.Core.Entities.User", b =>
                 {
+                    b.Navigation("DirectReports");
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618

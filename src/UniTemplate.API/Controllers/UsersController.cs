@@ -11,10 +11,12 @@ namespace UniTemplate.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IEmailService _emailService;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, IEmailService emailService)
     {
         _userService = userService;
+        _emailService = emailService;
     }
 
     [HttpGet]
@@ -86,5 +88,43 @@ public class UsersController : ControllerBase
             return NotFound(new { message = "User not found" });
 
         return Ok(user);
+    }
+
+    [HttpPost("{id}/send-details")]
+    public async Task<ActionResult> SendUserDetails(Guid id)
+    {
+        var user = await _userService.GetUserByIdAsync(id);
+        if (user == null)
+            return NotFound(new { message = "User not found" });
+
+        try
+        {
+            var userDetails = new UserDetailsForEmail
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                EmployeeId = user.EmployeeId,
+                Designation = user.Designation,
+                Department = user.Department,
+                PhoneNumber = user.PhoneNumber,
+                OfficeLocation = user.OfficeLocation,
+                DateOfJoining = user.DateOfJoining?.ToString("yyyy-MM-dd"),
+                ReportsToName = user.ReportsToName,
+                Roles = user.Roles.Select(r => r.Name).ToList()
+            };
+
+            await _emailService.SendUserDetailsEmailAsync(
+                user.Email,
+                $"{user.FirstName} {user.LastName}",
+                userDetails
+            );
+
+            return Ok(new { message = "User details email sent successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = $"Failed to send email: {ex.Message}" });
+        }
     }
 }

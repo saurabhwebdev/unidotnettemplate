@@ -32,6 +32,12 @@ import {
   ChevronRight,
   Check,
   Minus,
+  Briefcase,
+  Building2,
+  MapPin,
+  Calendar,
+  UserCog,
+  BadgeCheck,
 } from 'lucide-react';
 
 export function RolesAndUsers() {
@@ -62,6 +68,13 @@ export function RolesAndUsers() {
     firstName: '',
     lastName: '',
     isActive: true,
+    employeeId: '',
+    designation: '',
+    department: '',
+    phoneNumber: '',
+    officeLocation: '',
+    dateOfJoining: '',
+    reportsToId: '',
     roleIds: [] as string[]
   });
 
@@ -160,6 +173,22 @@ export function RolesAndUsers() {
     }
   };
 
+  const getDefaultUserFormData = () => ({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    isActive: true,
+    employeeId: '',
+    designation: '',
+    department: '',
+    phoneNumber: '',
+    officeLocation: '',
+    dateOfJoining: '',
+    reportsToId: '',
+    roleIds: [] as string[]
+  });
+
   const handleCreateUser = async () => {
     try {
       const createData: CreateUserRequest = {
@@ -167,10 +196,17 @@ export function RolesAndUsers() {
         password: userFormData.password,
         firstName: userFormData.firstName,
         lastName: userFormData.lastName,
+        employeeId: userFormData.employeeId || null,
+        designation: userFormData.designation || null,
+        department: userFormData.department || null,
+        phoneNumber: userFormData.phoneNumber || null,
+        officeLocation: userFormData.officeLocation || null,
+        dateOfJoining: userFormData.dateOfJoining || null,
+        reportsToId: userFormData.reportsToId || null,
         roleIds: userFormData.roleIds
       };
       await usersService.createUser(createData);
-      setUserFormData({ email: '', password: '', firstName: '', lastName: '', isActive: true, roleIds: [] });
+      setUserFormData(getDefaultUserFormData());
       setShowUserModal(false);
       loadUsers();
     } catch (error) {
@@ -185,10 +221,17 @@ export function RolesAndUsers() {
       const updateData: UpdateUserRequest = {
         firstName: userFormData.firstName,
         lastName: userFormData.lastName,
-        isActive: userFormData.isActive
+        isActive: userFormData.isActive,
+        employeeId: userFormData.employeeId || null,
+        designation: userFormData.designation || null,
+        department: userFormData.department || null,
+        phoneNumber: userFormData.phoneNumber || null,
+        officeLocation: userFormData.officeLocation || null,
+        dateOfJoining: userFormData.dateOfJoining || null,
+        reportsToId: userFormData.reportsToId || null
       };
       await usersService.updateUser(editingUser.id, updateData);
-      setUserFormData({ email: '', password: '', firstName: '', lastName: '', isActive: true, roleIds: [] });
+      setUserFormData(getDefaultUserFormData());
       setEditingUser(null);
       setShowUserModal(false);
       loadUsers();
@@ -247,11 +290,18 @@ export function RolesAndUsers() {
         firstName: user.firstName,
         lastName: user.lastName,
         isActive: user.isActive,
+        employeeId: user.employeeId || '',
+        designation: user.designation || '',
+        department: user.department || '',
+        phoneNumber: user.phoneNumber || '',
+        officeLocation: user.officeLocation || '',
+        dateOfJoining: user.dateOfJoining ? user.dateOfJoining.split('T')[0] : '',
+        reportsToId: user.reportsToId || '',
         roleIds: user.roles.map(r => r.id)
       });
     } else {
       setEditingUser(null);
-      setUserFormData({ email: '', password: '', firstName: '', lastName: '', isActive: true, roleIds: [] });
+      setUserFormData(getDefaultUserFormData());
     }
     setShowUserModal(true);
   };
@@ -609,7 +659,7 @@ export function RolesAndUsers() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>User</TableHead>
-                      <TableHead>Email</TableHead>
+                      <TableHead>Department</TableHead>
                       <TableHead>Roles</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -619,20 +669,43 @@ export function RolesAndUsers() {
                     {paginatedUsers.map((user) => (
                     <TableRow key={user.id} className="hover:bg-opacity-50">
                       <TableCell>
-                        <div className="flex items-center gap-2 font-medium">
+                        <div className="flex items-center gap-3">
                           <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold"
+                            className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0"
                             style={{ backgroundColor: colors.primary }}
                           >
                             {user.firstName[0]}{user.lastName[0]}
                           </div>
-                          {user.firstName} {user.lastName}
+                          <div>
+                            <div className="font-medium" style={{ color: colors.textPrimary }}>
+                              {user.firstName} {user.lastName}
+                            </div>
+                            <div className="text-xs" style={{ color: colors.textMuted }}>
+                              {user.designation || 'No designation'}
+                            </div>
+                            <div className="flex items-center gap-1 text-xs" style={{ color: colors.textMuted }}>
+                              <Mail size={12} />
+                              {user.email}
+                            </div>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2" style={{ color: colors.textMuted }}>
-                          <Mail size={14} />
-                          {user.email}
+                        <div>
+                          {user.department ? (
+                            <div className="flex items-center gap-1.5">
+                              <Building2 size={14} style={{ color: colors.textMuted }} />
+                              <span style={{ color: colors.textPrimary }}>{user.department}</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs" style={{ color: colors.textMuted }}>-</span>
+                          )}
+                          {user.officeLocation && (
+                            <div className="flex items-center gap-1.5 text-xs mt-0.5" style={{ color: colors.textMuted }}>
+                              <MapPin size={12} />
+                              {user.officeLocation}
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -680,6 +753,23 @@ export function RolesAndUsers() {
                           >
                             <Edit2 size={14} />
                             Edit
+                          </Button>
+                          <Button
+                            onClick={async () => {
+                              try {
+                                await usersService.sendUserDetails(user.id);
+                                alert('User details email sent successfully!');
+                              } catch (error) {
+                                alert('Failed to send user details email');
+                              }
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="hover:scale-105 transition-transform flex items-center gap-1"
+                            title="Send user details via email"
+                          >
+                            <Mail size={14} />
+                            Email
                           </Button>
                           <Button
                             onClick={() => handleDeleteUser(user.id)}
@@ -1015,98 +1105,226 @@ export function RolesAndUsers() {
           onClose={() => {
             setShowUserModal(false);
             setEditingUser(null);
-            setUserFormData({ email: '', password: '', firstName: '', lastName: '', isActive: true, roleIds: [] });
+            setUserFormData(getDefaultUserFormData());
           }}
           title={editingUser ? 'Edit User' : 'Create New User'}
+          size="lg"
         >
-          <div className="space-y-4">
+          <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-2">
+            {/* Basic Information Section */}
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
-                Email
-              </label>
-              <Input
-                type="email"
-                value={userFormData.email}
-                onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
-                placeholder="Enter email"
-                disabled={!!editingUser}
-              />
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: colors.textPrimary }}>
+                <UsersIcon size={16} />
+                Basic Information
+              </h3>
+              <div className="space-y-3 pl-6">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                    Email
+                  </label>
+                  <Input
+                    type="email"
+                    value={userFormData.email}
+                    onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
+                    placeholder="Enter email"
+                    disabled={!!editingUser}
+                  />
+                </div>
+                {!editingUser && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                      Password
+                    </label>
+                    <Input
+                      type="password"
+                      value={userFormData.password}
+                      onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
+                      placeholder="Enter password"
+                    />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                      First Name
+                    </label>
+                    <Input
+                      value={userFormData.firstName}
+                      onChange={(e) => setUserFormData({ ...userFormData, firstName: e.target.value })}
+                      placeholder="Enter first name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                      Last Name
+                    </label>
+                    <Input
+                      value={userFormData.lastName}
+                      onChange={(e) => setUserFormData({ ...userFormData, lastName: e.target.value })}
+                      placeholder="Enter last name"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                    Phone Number
+                  </label>
+                  <Input
+                    type="tel"
+                    value={userFormData.phoneNumber}
+                    onChange={(e) => setUserFormData({ ...userFormData, phoneNumber: e.target.value })}
+                    placeholder="Enter phone number"
+                  />
+                </div>
+              </div>
             </div>
-            {!editingUser && (
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
-                  Password
-                </label>
-                <Input
-                  type="password"
-                  value={userFormData.password}
-                  onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
-                  placeholder="Enter password"
-                />
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
-                  First Name
-                </label>
-                <Input
-                  value={userFormData.firstName}
-                  onChange={(e) => setUserFormData({ ...userFormData, firstName: e.target.value })}
-                  placeholder="Enter first name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
-                  Last Name
-                </label>
-                <Input
-                  value={userFormData.lastName}
-                  onChange={(e) => setUserFormData({ ...userFormData, lastName: e.target.value })}
-                  placeholder="Enter last name"
-                />
-              </div>
-            </div>
-            {editingUser && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={userFormData.isActive}
-                  onChange={(e) => setUserFormData({ ...userFormData, isActive: e.target.checked })}
-                  className="rounded"
-                />
-                <label htmlFor="isActive" className="text-sm font-medium" style={{ color: colors.textSecondary }}>
-                  Active
-                </label>
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
-                Assign Roles
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {roles.map((role) => {
-                  const isSelected = userFormData.roleIds.includes(role.id);
-                  return (
-                    <button
-                      key={role.id}
-                      type="button"
-                      onClick={() => toggleRoleInUserForm(role.id)}
-                      className="px-3 py-2 rounded text-sm font-medium transition-all hover:scale-105"
+
+            {/* Employee Information Section */}
+            <div className="pt-2 border-t" style={{ borderColor: colors.border }}>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: colors.textPrimary }}>
+                <Briefcase size={16} />
+                Employee Information
+              </h3>
+              <div className="space-y-3 pl-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
+                      <BadgeCheck size={14} />
+                      Employee ID
+                    </label>
+                    <Input
+                      value={userFormData.employeeId}
+                      onChange={(e) => setUserFormData({ ...userFormData, employeeId: e.target.value })}
+                      placeholder="e.g., EMP001"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
+                      <UserCog size={14} />
+                      Designation
+                    </label>
+                    <Input
+                      value={userFormData.designation}
+                      onChange={(e) => setUserFormData({ ...userFormData, designation: e.target.value })}
+                      placeholder="e.g., Software Engineer"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
+                      <Building2 size={14} />
+                      Department
+                    </label>
+                    <Input
+                      value={userFormData.department}
+                      onChange={(e) => setUserFormData({ ...userFormData, department: e.target.value })}
+                      placeholder="e.g., Engineering"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
+                      <MapPin size={14} />
+                      Office Location
+                    </label>
+                    <Input
+                      value={userFormData.officeLocation}
+                      onChange={(e) => setUserFormData({ ...userFormData, officeLocation: e.target.value })}
+                      placeholder="e.g., New York, Floor 5"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
+                      <Calendar size={14} />
+                      Date of Joining
+                    </label>
+                    <Input
+                      type="date"
+                      value={userFormData.dateOfJoining}
+                      onChange={(e) => setUserFormData({ ...userFormData, dateOfJoining: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
+                      <UsersIcon size={14} />
+                      Reports To
+                    </label>
+                    <select
+                      value={userFormData.reportsToId}
+                      onChange={(e) => setUserFormData({ ...userFormData, reportsToId: e.target.value })}
+                      className="w-full px-3 py-2 rounded-md text-sm"
                       style={{
-                        backgroundColor: isSelected ? colors.primary : colors.bgSecondary,
-                        color: isSelected ? 'white' : colors.textSecondary,
-                        border: `1px solid ${isSelected ? colors.primary : colors.border}`
+                        backgroundColor: colors.bgSecondary,
+                        border: `1px solid ${colors.border}`,
+                        color: colors.textPrimary
                       }}
                     >
-                      {role.name}
-                    </button>
-                  );
-                })}
+                      <option value="">Select Manager</option>
+                      {users.filter(u => u.id !== editingUser?.id).map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.firstName} {u.lastName} {u.designation ? `(${u.designation})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex gap-2 pt-4 border-t" style={{ borderColor: colors.border }}>
+
+            {/* Status & Roles Section */}
+            <div className="pt-2 border-t" style={{ borderColor: colors.border }}>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: colors.textPrimary }}>
+                <Shield size={16} />
+                Status & Roles
+              </h3>
+              <div className="space-y-3 pl-6">
+                {editingUser && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isActive"
+                      checked={userFormData.isActive}
+                      onChange={(e) => setUserFormData({ ...userFormData, isActive: e.target.checked })}
+                      className="rounded"
+                      style={{ accentColor: colors.primary }}
+                    />
+                    <label htmlFor="isActive" className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                      Active User
+                    </label>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
+                    Assign Roles
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {roles.map((role) => {
+                      const isSelected = userFormData.roleIds.includes(role.id);
+                      return (
+                        <button
+                          key={role.id}
+                          type="button"
+                          onClick={() => toggleRoleInUserForm(role.id)}
+                          className="px-3 py-1.5 rounded text-sm font-medium transition-all hover:scale-105"
+                          style={{
+                            backgroundColor: isSelected ? colors.primary : colors.bgSecondary,
+                            color: isSelected ? 'white' : colors.textSecondary,
+                            border: `1px solid ${isSelected ? colors.primary : colors.border}`
+                          }}
+                        >
+                          {role.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4 border-t sticky bottom-0 bg-inherit" style={{ borderColor: colors.border, backgroundColor: colors.bgPrimary }}>
               <Button
                 onClick={editingUser ? handleUpdateUser : handleCreateUser}
                 style={{ backgroundColor: colors.primary }}
@@ -1118,7 +1336,7 @@ export function RolesAndUsers() {
                 onClick={() => {
                   setShowUserModal(false);
                   setEditingUser(null);
-                  setUserFormData({ email: '', password: '', firstName: '', lastName: '', isActive: true, roleIds: [] });
+                  setUserFormData(getDefaultUserFormData());
                 }}
                 variant="outline"
               >

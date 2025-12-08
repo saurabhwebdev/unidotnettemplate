@@ -6,7 +6,20 @@ export interface UserWithRoles {
   email: string;
   firstName: string;
   lastName: string;
+  avatarUrl?: string | null;
+  avatarColor?: string | null;
   isActive: boolean;
+
+  // Enterprise/Employee Information
+  employeeId?: string | null;
+  designation?: string | null;
+  department?: string | null;
+  phoneNumber?: string | null;
+  officeLocation?: string | null;
+  dateOfJoining?: string | null;
+  reportsToId?: string | null;
+  reportsToName?: string | null;
+
   createdAt: string;
   roles: Role[];
 }
@@ -16,6 +29,16 @@ export interface CreateUserRequest {
   password: string;
   firstName: string;
   lastName: string;
+
+  // Enterprise/Employee Information
+  employeeId?: string | null;
+  designation?: string | null;
+  department?: string | null;
+  phoneNumber?: string | null;
+  officeLocation?: string | null;
+  dateOfJoining?: string | null;
+  reportsToId?: string | null;
+
   roleIds: string[];
 }
 
@@ -23,6 +46,15 @@ export interface UpdateUserRequest {
   firstName: string;
   lastName: string;
   isActive: boolean;
+
+  // Enterprise/Employee Information
+  employeeId?: string | null;
+  designation?: string | null;
+  department?: string | null;
+  phoneNumber?: string | null;
+  officeLocation?: string | null;
+  dateOfJoining?: string | null;
+  reportsToId?: string | null;
 }
 
 export interface AssignRolesRequest {
@@ -66,6 +98,11 @@ class UsersService {
 
   async updateAvatar(userId: string, data: UpdateAvatarRequest): Promise<UserWithRoles> {
     const response = await api.put<UserWithRoles>(`/users/${userId}/avatar`, data);
+    return response.data;
+  }
+
+  async sendUserDetails(userId: string): Promise<{ message: string }> {
+    const response = await api.post<{ message: string }>(`/users/${userId}/send-details`);
     return response.data;
   }
 }
