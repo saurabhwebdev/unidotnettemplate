@@ -280,8 +280,8 @@ From MVP to millions of users. The architecture supports horizontal scaling and 
 | SendGrid Support | 🔜 |
 | Email Templates | ✅ |
 | HTML Emails | ✅ |
-| Email Queue | 🔜 |
-| Delivery Tracking | 🔜 |
+| Email Queue | ✅ |
+| Delivery Tracking | ✅ |
 | Bounce Handling | 🔜 |
 | Notification Preferences | ✅ |
 | Unsubscribe Management | ✅ |
@@ -1878,6 +1878,151 @@ Authorization: Bearer <access_token>
   "Settings",
   "Authentication"
 ]
+```
+
+</details>
+
+<details>
+<summary><h4>📧 Email Queue Endpoints</h4></summary>
+
+<br />
+
+#### Get Email Queue (Paginated)
+
+```http
+GET /api/emailqueue?page=1&pageSize=20
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `page` | int | Page number (default: 1) |
+| `pageSize` | int | Items per page (default: 20) |
+| `status` | string | Filter by status (Pending, Processing, Sent, Failed, Cancelled) |
+| `emailType` | string | Filter by email type |
+| `searchTerm` | string | Search in email, name, or subject |
+| `fromDate` | datetime | Filter from date |
+| `toDate` | datetime | Filter to date |
+
+**Response:** `200 OK`
+```json
+{
+  "items": [
+    {
+      "id": "email-id-1",
+      "toEmail": "user@example.com",
+      "toName": "John Doe",
+      "subject": "Welcome to Our Platform",
+      "body": "<html>...</html>",
+      "isHtml": true,
+      "status": "Sent",
+      "retryCount": 0,
+      "maxRetries": 3,
+      "scheduledAt": null,
+      "sentAt": "2024-12-08T10:30:00Z",
+      "failedAt": null,
+      "errorMessage": null,
+      "emailType": "Welcome",
+      "triggeredByUserEmail": "admin@example.com",
+      "createdAt": "2024-12-08T10:29:00Z"
+    }
+  ],
+  "totalCount": 50,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 3
+}
+```
+
+---
+
+#### Get Email Queue Statistics
+
+```http
+GET /api/emailqueue/stats
+Authorization: Bearer <access_token>
+```
+
+**Response:** `200 OK`
+```json
+{
+  "totalEmails": 150,
+  "pendingEmails": 5,
+  "processingEmails": 1,
+  "sentEmails": 140,
+  "failedEmails": 3,
+  "cancelledEmails": 1,
+  "todaySent": 25,
+  "todayFailed": 1
+}
+```
+
+---
+
+#### Queue New Email
+
+```http
+POST /api/emailqueue
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "toEmail": "user@example.com",
+  "toName": "John Doe",
+  "subject": "Important Notification",
+  "body": "<html><body><h1>Hello!</h1></body></html>",
+  "isHtml": true,
+  "scheduledAt": "2024-12-09T10:00:00Z",
+  "emailType": "Notification"
+}
+```
+
+---
+
+#### Process Pending Emails
+
+```http
+POST /api/emailqueue/process?batchSize=10
+Authorization: Bearer <access_token>
+```
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Processed 5 emails",
+  "processedCount": 5
+}
+```
+
+---
+
+#### Cancel Pending Email
+
+```http
+POST /api/emailqueue/{id}/cancel
+Authorization: Bearer <access_token>
+```
+
+---
+
+#### Retry Failed Email
+
+```http
+POST /api/emailqueue/{id}/retry
+Authorization: Bearer <access_token>
+```
+
+---
+
+#### Delete Email from Queue
+
+```http
+DELETE /api/emailqueue/{id}
+Authorization: Bearer <access_token>
 ```
 
 </details>

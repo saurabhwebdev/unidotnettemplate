@@ -27,6 +27,8 @@ interface TableHeadProps {
 interface TableCellProps {
   children: ReactNode;
   className?: string;
+  colSpan?: number;
+  style?: React.CSSProperties;
 }
 
 export function Table({ children }: TableProps) {
@@ -77,11 +79,12 @@ export function TableHead({ children, className = '' }: TableHeadProps) {
   );
 }
 
-export function TableCell({ children, className = '' }: TableCellProps) {
+export function TableCell({ children, className = '', colSpan, style }: TableCellProps) {
   return (
     <td
       className={`px-4 py-3 text-sm ${className}`}
-      style={{ color: colors.textPrimary }}
+      style={{ color: colors.textPrimary, ...style }}
+      colSpan={colSpan}
     >
       {children}
     </td>

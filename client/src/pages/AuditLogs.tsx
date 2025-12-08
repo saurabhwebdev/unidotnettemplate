@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { colors } from '../config/theme.config';
 import { auditLogsService } from '../services/auditLogs.service';
 import type { AuditLog, AuditLogFilter } from '../services/auditLogs.service';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { Select } from '../components/ui/select';
 import { Pagination } from '../components/ui/pagination';
+import { Mail } from 'lucide-react';
 
 export default function AuditLogs() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -161,6 +163,16 @@ export default function AuditLogs() {
             >
               Search
             </button>
+
+            {/* Email Queue Button */}
+            <Link
+              to="/email-queue"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all hover:opacity-90"
+              style={{ backgroundColor: colors.bgSecondary, border: `1px solid ${colors.border}`, color: colors.textPrimary }}
+            >
+              <Mail size={18} />
+              Email Queue
+            </Link>
           </div>
         </div>
 

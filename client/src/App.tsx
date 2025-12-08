@@ -9,6 +9,7 @@ import { Settings } from './pages/Settings';
 import { Profile } from './pages/Profile';
 import AuditLogs from './pages/AuditLogs';
 import Version from './pages/Version';
+import EmailQueue from './pages/EmailQueue';
 import { authService } from './services/auth.service';
 import { ToastProvider } from './components/ui/toast';
 
@@ -70,6 +71,14 @@ function App() {
           element={
             <PrivateRoute>
               <Version />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/email-queue"
+          element={
+            <PrivateRoute>
+              <EmailQueue />
             </PrivateRoute>
           }
         />
