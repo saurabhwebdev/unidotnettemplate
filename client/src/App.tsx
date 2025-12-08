@@ -10,6 +10,7 @@ import { Profile } from './pages/Profile';
 import AuditLogs from './pages/AuditLogs';
 import Version from './pages/Version';
 import { authService } from './services/auth.service';
+import { ToastProvider } from './components/ui/toast';
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
   return authService.isAuthenticated() ? children : <Navigate to="/login" />;
@@ -17,8 +18,9 @@ function PrivateRoute({ children }: { children: React.ReactElement }) {
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <ToastProvider>
+      <Router>
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -72,8 +74,9 @@ function App() {
           }
         />
         <Route path="/" element={<Navigate to="/dashboard" />} />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </ToastProvider>
   );
 }
 

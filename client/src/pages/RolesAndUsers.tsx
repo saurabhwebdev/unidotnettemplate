@@ -7,6 +7,7 @@ import { Modal } from '../components/ui/modal';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { SkeletonTable } from '../components/ui/skeleton';
 import { Pagination } from '../components/ui/pagination';
+import { useToast } from '../components/ui/toast';
 import { colors } from '../config/theme.config';
 import { rolesService } from '../services/roles.service';
 import { usersService } from '../services/users.service';
@@ -38,9 +39,11 @@ import {
   Calendar,
   UserCog,
   BadgeCheck,
+  Loader2,
 } from 'lucide-react';
 
 export function RolesAndUsers() {
+  const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<'roles' | 'users' | 'routes'>('roles');
   const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<UserWithRoles[]>([]);
@@ -49,6 +52,14 @@ export function RolesAndUsers() {
   const [loadingRoles, setLoadingRoles] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
+
+  // Action loading states
+  const [sendingEmailFor, setSendingEmailFor] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [deletingRoleId, setDeletingRoleId] = useState<string | null>(null);
+  const [savingRole, setSavingRole] = useState(false);
+  const [savingUser, setSavingUser] = useState(false);
+  const [savingRoleAssignment, setSavingRoleAssignment] = useState(false);
 
   // Role modal state
   const [showRoleModal, setShowRoleModal] = useState(false);
@@ -137,39 +148,51 @@ export function RolesAndUsers() {
   };
 
   const handleCreateRole = async () => {
+    setSavingRole(true);
     try {
       await rolesService.createRole(roleFormData);
       setRoleFormData({ name: '', description: '', permissions: [] });
       setShowRoleModal(false);
       loadRoles();
-    } catch (error) {
+      addToast({ type: 'success', title: 'Role Created', message: `Role "${roleFormData.name}" has been created successfully.` });
+    } catch (error: any) {
       console.error('Failed to create role:', error);
-      alert('Failed to create role');
+      addToast({ type: 'error', title: 'Failed to Create Role', message: error.response?.data?.message || 'An error occurred while creating the role.' });
+    } finally {
+      setSavingRole(false);
     }
   };
 
   const handleUpdateRole = async () => {
     if (!editingRole) return;
+    setSavingRole(true);
     try {
       await rolesService.updateRole(editingRole.id, roleFormData);
       setRoleFormData({ name: '', description: '', permissions: [] });
       setEditingRole(null);
       setShowRoleModal(false);
       loadRoles();
-    } catch (error) {
+      addToast({ type: 'success', title: 'Role Updated', message: `Role "${roleFormData.name}" has been updated successfully.` });
+    } catch (error: any) {
       console.error('Failed to update role:', error);
-      alert('Failed to update role');
+      addToast({ type: 'error', title: 'Failed to Update Role', message: error.response?.data?.message || 'An error occurred while updating the role.' });
+    } finally {
+      setSavingRole(false);
     }
   };
 
   const handleDeleteRole = async (id: string) => {
     if (!confirm('Are you sure you want to delete this role?')) return;
+    setDeletingRoleId(id);
     try {
       await rolesService.deleteRole(id);
       loadRoles();
-    } catch (error) {
+      addToast({ type: 'success', title: 'Role Deleted', message: 'The role has been deleted successfully.' });
+    } catch (error: any) {
       console.error('Failed to delete role:', error);
-      alert('Failed to delete role');
+      addToast({ type: 'error', title: 'Failed to Delete Role', message: error.response?.data?.message || 'An error occurred while deleting the role.' });
+    } finally {
+      setDeletingRoleId(null);
     }
   };
 
@@ -190,6 +213,7 @@ export function RolesAndUsers() {
   });
 
   const handleCreateUser = async () => {
+    setSavingUser(true);
     try {
       const createData: CreateUserRequest = {
         email: userFormData.email,
@@ -209,14 +233,18 @@ export function RolesAndUsers() {
       setUserFormData(getDefaultUserFormData());
       setShowUserModal(false);
       loadUsers();
-    } catch (error) {
+      addToast({ type: 'success', title: 'User Created', message: `User "${userFormData.firstName} ${userFormData.lastName}" has been created successfully.` });
+    } catch (error: any) {
       console.error('Failed to create user:', error);
-      alert('Failed to create user');
+      addToast({ type: 'error', title: 'Failed to Create User', message: error.response?.data?.message || 'An error occurred while creating the user.' });
+    } finally {
+      setSavingUser(false);
     }
   };
 
   const handleUpdateUser = async () => {
     if (!editingUser) return;
+    setSavingUser(true);
     try {
       const updateData: UpdateUserRequest = {
         firstName: userFormData.firstName,
@@ -235,34 +263,59 @@ export function RolesAndUsers() {
       setEditingUser(null);
       setShowUserModal(false);
       loadUsers();
-    } catch (error) {
+      addToast({ type: 'success', title: 'User Updated', message: `User "${userFormData.firstName} ${userFormData.lastName}" has been updated successfully.` });
+    } catch (error: any) {
       console.error('Failed to update user:', error);
-      alert('Failed to update user');
+      addToast({ type: 'error', title: 'Failed to Update User', message: error.response?.data?.message || 'An error occurred while updating the user.' });
+    } finally {
+      setSavingUser(false);
     }
   };
 
   const handleDeleteUser = async (id: string) => {
     if (!confirm('Are you sure you want to delete this user?')) return;
+    setDeletingUserId(id);
     try {
       await usersService.deleteUser(id);
       loadUsers();
-    } catch (error) {
+      addToast({ type: 'success', title: 'User Deleted', message: 'The user has been deleted successfully.' });
+    } catch (error: any) {
       console.error('Failed to delete user:', error);
-      alert('Failed to delete user');
+      addToast({ type: 'error', title: 'Failed to Delete User', message: error.response?.data?.message || 'An error occurred while deleting the user.' });
+    } finally {
+      setDeletingUserId(null);
     }
   };
 
   const handleAssignRoles = async () => {
     if (!assigningRolesFor) return;
+    setSavingRoleAssignment(true);
     try {
       await usersService.assignRoles(assigningRolesFor.id, { roleIds: selectedRoleIds });
+      const userName = `${assigningRolesFor.firstName} ${assigningRolesFor.lastName}`;
       setAssigningRolesFor(null);
       setSelectedRoleIds([]);
       setShowRoleAssignmentModal(false);
       loadUsers();
-    } catch (error) {
+      addToast({ type: 'success', title: 'Roles Assigned', message: `Roles have been assigned to ${userName} successfully.` });
+    } catch (error: any) {
       console.error('Failed to assign roles:', error);
-      alert('Failed to assign roles');
+      addToast({ type: 'error', title: 'Failed to Assign Roles', message: error.response?.data?.message || 'An error occurred while assigning roles.' });
+    } finally {
+      setSavingRoleAssignment(false);
+    }
+  };
+
+  const handleSendUserDetails = async (user: UserWithRoles) => {
+    setSendingEmailFor(user.id);
+    try {
+      await usersService.sendUserDetails(user.id);
+      addToast({ type: 'success', title: 'Email Sent', message: `User details have been sent to ${user.email} successfully.` });
+    } catch (error: any) {
+      console.error('Failed to send user details:', error);
+      addToast({ type: 'error', title: 'Failed to Send Email', message: error.response?.data?.message || 'An error occurred while sending the email.' });
+    } finally {
+      setSendingEmailFor(null);
     }
   };
 
@@ -588,9 +641,14 @@ export function RolesAndUsers() {
                               variant="outline"
                               size="sm"
                               className="text-red-600 hover:bg-red-50 hover:scale-105 transition-transform flex items-center gap-1"
+                              disabled={deletingRoleId === role.id}
                             >
-                              <Trash2 size={14} />
-                              Delete
+                              {deletingRoleId === role.id ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={14} />
+                              )}
+                              {deletingRoleId === role.id ? 'Deleting...' : 'Delete'}
                             </Button>
                           )}
                         </div>
@@ -755,30 +813,33 @@ export function RolesAndUsers() {
                             Edit
                           </Button>
                           <Button
-                            onClick={async () => {
-                              try {
-                                await usersService.sendUserDetails(user.id);
-                                alert('User details email sent successfully!');
-                              } catch (error) {
-                                alert('Failed to send user details email');
-                              }
-                            }}
+                            onClick={() => handleSendUserDetails(user)}
                             variant="outline"
                             size="sm"
                             className="hover:scale-105 transition-transform flex items-center gap-1"
                             title="Send user details via email"
+                            disabled={sendingEmailFor === user.id}
                           >
-                            <Mail size={14} />
-                            Email
+                            {sendingEmailFor === user.id ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Mail size={14} />
+                            )}
+                            {sendingEmailFor === user.id ? 'Sending...' : 'Email'}
                           </Button>
                           <Button
                             onClick={() => handleDeleteUser(user.id)}
                             variant="outline"
                             size="sm"
                             className="text-red-600 hover:bg-red-50 hover:scale-105 transition-transform flex items-center gap-1"
+                            disabled={deletingUserId === user.id}
                           >
-                            <Trash2 size={14} />
-                            Delete
+                            {deletingUserId === user.id ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={14} />
+                            )}
+                            {deletingUserId === user.id ? 'Deleting...' : 'Delete'}
                           </Button>
                         </div>
                       </TableCell>
@@ -1081,9 +1142,10 @@ export function RolesAndUsers() {
                 onClick={editingRole ? handleUpdateRole : handleCreateRole}
                 style={{ backgroundColor: colors.primary }}
                 className="text-white hover:opacity-90 flex-1 flex items-center gap-2 justify-center"
-                disabled={editingRole?.isSystemRole}
+                disabled={editingRole?.isSystemRole || savingRole}
               >
-                {editingRole ? 'Update Role' : 'Create Role'}
+                {savingRole && <Loader2 size={16} className="animate-spin" />}
+                {savingRole ? 'Saving...' : editingRole ? 'Update Role' : 'Create Role'}
               </Button>
               <Button
                 onClick={() => {
@@ -1092,6 +1154,7 @@ export function RolesAndUsers() {
                   setRoleFormData({ name: '', description: '', permissions: [] });
                 }}
                 variant="outline"
+                disabled={savingRole}
               >
                 Cancel
               </Button>
@@ -1328,9 +1391,11 @@ export function RolesAndUsers() {
               <Button
                 onClick={editingUser ? handleUpdateUser : handleCreateUser}
                 style={{ backgroundColor: colors.primary }}
-                className="text-white hover:opacity-90 flex-1"
+                className="text-white hover:opacity-90 flex-1 flex items-center gap-2 justify-center"
+                disabled={savingUser}
               >
-                {editingUser ? 'Update User' : 'Create User'}
+                {savingUser && <Loader2 size={16} className="animate-spin" />}
+                {savingUser ? 'Saving...' : editingUser ? 'Update User' : 'Create User'}
               </Button>
               <Button
                 onClick={() => {
@@ -1339,6 +1404,7 @@ export function RolesAndUsers() {
                   setUserFormData(getDefaultUserFormData());
                 }}
                 variant="outline"
+                disabled={savingUser}
               >
                 Cancel
               </Button>
@@ -1380,9 +1446,11 @@ export function RolesAndUsers() {
               <Button
                 onClick={handleAssignRoles}
                 style={{ backgroundColor: colors.primary }}
-                className="text-white hover:opacity-90 flex-1"
+                className="text-white hover:opacity-90 flex-1 flex items-center gap-2 justify-center"
+                disabled={savingRoleAssignment}
               >
-                Save Changes
+                {savingRoleAssignment && <Loader2 size={16} className="animate-spin" />}
+                {savingRoleAssignment ? 'Saving...' : 'Save Changes'}
               </Button>
               <Button
                 onClick={() => {
@@ -1391,6 +1459,7 @@ export function RolesAndUsers() {
                   setSelectedRoleIds([]);
                 }}
                 variant="outline"
+                disabled={savingRoleAssignment}
               >
                 Cancel
               </Button>
