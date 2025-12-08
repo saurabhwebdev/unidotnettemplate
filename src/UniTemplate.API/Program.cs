@@ -54,8 +54,6 @@ else
     builder.Services.AddScoped<UniTemplate.Core.Interfaces.IEmailService, UniTemplate.Data.Services.SmtpEmailService>();
 }
 
-// Add Email Queue Service
-builder.Services.AddScoped<UniTemplate.Core.Interfaces.IEmailQueueService, UniTemplate.Data.Services.EmailQueueService>();
 
 // Add CORS
 builder.Services.AddCors(options =>

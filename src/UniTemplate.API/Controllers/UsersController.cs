@@ -12,11 +12,23 @@ public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IEmailService _emailService;
+    private readonly IAuditLogService _auditLogService;
 
-    public UsersController(IUserService userService, IEmailService emailService)
+    public UsersController(IUserService userService, IEmailService emailService, IAuditLogService auditLogService)
     {
         _userService = userService;
         _emailService = emailService;
+        _auditLogService = auditLogService;
+    }
+
+    private string GetClientIpAddress()
+    {
+        return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+    }
+
+    private string GetUserAgent()
+    {
+        return Request.Headers["User-Agent"].ToString();
     }
 
     [HttpGet]
@@ -93,6 +105,10 @@ public class UsersController : ControllerBase
     [HttpPost("{id}/send-details")]
     public async Task<ActionResult> SendUserDetails(Guid id)
     {
+        var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var currentUserEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        Guid? triggeredByUserId = Guid.TryParse(currentUserId, out var parsedId) ? parsedId : null;
+
         var user = await _userService.GetUserByIdAsync(id);
         if (user == null)
             return NotFound(new { message = "User not found" });
@@ -120,10 +136,40 @@ public class UsersController : ControllerBase
                 userDetails
             );
 
+            // Log email sent to audit log
+            await _auditLogService.LogActionAsync(
+                triggeredByUserId,
+                currentUserEmail ?? "System",
+                "EmailSent",
+                "Email",
+                user.Id.ToString(),
+                null,
+                new { EmailType = "UserDetails", ToEmail = user.Email, ToName = $"{user.FirstName} {user.LastName}", Subject = "Your Account Details" },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"User details email sent to {user.Email}"
+            );
+
             return Ok(new { message = "User details email sent successfully" });
         }
         catch (Exception ex)
         {
+            // Log email failure to audit log
+            await _auditLogService.LogActionAsync(
+                triggeredByUserId,
+                currentUserEmail ?? "System",
+                "EmailFailed",
+                "Email",
+                user.Id.ToString(),
+                null,
+                new { EmailType = "UserDetails", ToEmail = user.Email, ToName = $"{user.FirstName} {user.LastName}", Error = ex.Message },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"Failed to send user details email to {user.Email}",
+                false,
+                ex.Message
+            );
+
             return BadRequest(new { message = $"Failed to send email: {ex.Message}" });
         }
     }

@@ -12,11 +12,34 @@ public class EmailTestController : ControllerBase
 {
     private readonly IEmailService _emailService;
     private readonly EmailSettings _emailSettings;
+    private readonly IAuditLogService _auditLogService;
 
-    public EmailTestController(IEmailService emailService, IOptions<EmailSettings> emailSettings)
+    public EmailTestController(IEmailService emailService, IOptions<EmailSettings> emailSettings, IAuditLogService auditLogService)
     {
         _emailService = emailService;
         _emailSettings = emailSettings.Value;
+        _auditLogService = auditLogService;
+    }
+
+    private string GetClientIpAddress()
+    {
+        return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+    }
+
+    private string GetUserAgent()
+    {
+        return Request.Headers["User-Agent"].ToString();
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(userId, out var id) ? id : null;
+    }
+
+    private string GetCurrentUserEmail()
+    {
+        return User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "System";
     }
 
     [HttpGet("settings")]
@@ -98,10 +121,39 @@ public class EmailTestController : ControllerBase
             };
 
             await _emailService.SendEmailAsync(message);
+
+            await _auditLogService.LogActionAsync(
+                GetCurrentUserId(),
+                GetCurrentUserEmail(),
+                "EmailSent",
+                "Email",
+                null,
+                null,
+                new { EmailType = "Test", ToEmail = request.ToEmail, Subject = "Test Email from UniTemplate" },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"Test email sent to {request.ToEmail}"
+            );
+
             return Ok(new { success = true, message = "Test email sent successfully!" });
         }
         catch (Exception ex)
         {
+            await _auditLogService.LogActionAsync(
+                GetCurrentUserId(),
+                GetCurrentUserEmail(),
+                "EmailFailed",
+                "Email",
+                null,
+                null,
+                new { EmailType = "Test", ToEmail = request.ToEmail, Error = ex.Message },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"Failed to send test email to {request.ToEmail}",
+                false,
+                ex.Message
+            );
+
             return BadRequest(new { success = false, error = ex.Message });
         }
     }
@@ -112,10 +164,39 @@ public class EmailTestController : ControllerBase
         try
         {
             await _emailService.SendWelcomeEmailAsync(request.ToEmail, request.UserName);
+
+            await _auditLogService.LogActionAsync(
+                GetCurrentUserId(),
+                GetCurrentUserEmail(),
+                "EmailSent",
+                "Email",
+                null,
+                null,
+                new { EmailType = "Welcome", ToEmail = request.ToEmail, ToName = request.UserName, Subject = "Welcome to UniTemplate" },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"Welcome email sent to {request.ToEmail}"
+            );
+
             return Ok(new { success = true, message = "Welcome email sent successfully!" });
         }
         catch (Exception ex)
         {
+            await _auditLogService.LogActionAsync(
+                GetCurrentUserId(),
+                GetCurrentUserEmail(),
+                "EmailFailed",
+                "Email",
+                null,
+                null,
+                new { EmailType = "Welcome", ToEmail = request.ToEmail, ToName = request.UserName, Error = ex.Message },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"Failed to send welcome email to {request.ToEmail}",
+                false,
+                ex.Message
+            );
+
             return BadRequest(new { success = false, error = ex.Message });
         }
     }
@@ -126,10 +207,39 @@ public class EmailTestController : ControllerBase
         try
         {
             await _emailService.SendPasswordResetEmailAsync(request.ToEmail, request.ResetLink);
+
+            await _auditLogService.LogActionAsync(
+                GetCurrentUserId(),
+                GetCurrentUserEmail(),
+                "EmailSent",
+                "Email",
+                null,
+                null,
+                new { EmailType = "PasswordReset", ToEmail = request.ToEmail, Subject = "Password Reset Request" },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"Password reset email sent to {request.ToEmail}"
+            );
+
             return Ok(new { success = true, message = "Password reset email sent successfully!" });
         }
         catch (Exception ex)
         {
+            await _auditLogService.LogActionAsync(
+                GetCurrentUserId(),
+                GetCurrentUserEmail(),
+                "EmailFailed",
+                "Email",
+                null,
+                null,
+                new { EmailType = "PasswordReset", ToEmail = request.ToEmail, Error = ex.Message },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"Failed to send password reset email to {request.ToEmail}",
+                false,
+                ex.Message
+            );
+
             return BadRequest(new { success = false, error = ex.Message });
         }
     }
@@ -140,10 +250,39 @@ public class EmailTestController : ControllerBase
         try
         {
             await _emailService.SendEmailVerificationAsync(request.ToEmail, request.VerificationLink);
+
+            await _auditLogService.LogActionAsync(
+                GetCurrentUserId(),
+                GetCurrentUserEmail(),
+                "EmailSent",
+                "Email",
+                null,
+                null,
+                new { EmailType = "Verification", ToEmail = request.ToEmail, Subject = "Verify Your Email" },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"Verification email sent to {request.ToEmail}"
+            );
+
             return Ok(new { success = true, message = "Verification email sent successfully!" });
         }
         catch (Exception ex)
         {
+            await _auditLogService.LogActionAsync(
+                GetCurrentUserId(),
+                GetCurrentUserEmail(),
+                "EmailFailed",
+                "Email",
+                null,
+                null,
+                new { EmailType = "Verification", ToEmail = request.ToEmail, Error = ex.Message },
+                GetClientIpAddress(),
+                GetUserAgent(),
+                $"Failed to send verification email to {request.ToEmail}",
+                false,
+                ex.Message
+            );
+
             return BadRequest(new { success = false, error = ex.Message });
         }
     }

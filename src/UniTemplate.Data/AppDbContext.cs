@@ -16,7 +16,6 @@ public class AppDbContext : DbContext
     public DbSet<UserEmailPreference> UserEmailPreferences { get; set; }
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
-    public DbSet<EmailQueue> EmailQueue { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -124,25 +123,6 @@ public class AppDbContext : DbContext
             entity.Property(e => e.UserEmail).HasMaxLength(256);
             entity.Property(e => e.IpAddress).HasMaxLength(50);
             entity.Property(e => e.UserAgent).HasMaxLength(500);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
-        });
-
-        modelBuilder.Entity<EmailQueue>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Status);
-            entity.HasIndex(e => e.ScheduledAt);
-            entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.EmailType);
-
-            entity.Property(e => e.ToEmail).IsRequired().HasMaxLength(256);
-            entity.Property(e => e.ToName).HasMaxLength(200);
-            entity.Property(e => e.Subject).IsRequired().HasMaxLength(500);
-            entity.Property(e => e.Body).IsRequired();
-            entity.Property(e => e.EmailType).HasMaxLength(100);
-            entity.Property(e => e.ErrorMessage).HasMaxLength(2000);
-            entity.Property(e => e.TriggeredByUserEmail).HasMaxLength(256);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
         });
