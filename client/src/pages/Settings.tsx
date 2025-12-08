@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -10,6 +10,46 @@ import { colors } from '../config/theme.config';
 import { api } from '../services/api';
 import { emailPreferencesService, type EmailPreference } from '../services/emailPreferences.service';
 import { Mail, Send, CheckCircle, XCircle, Loader, Bell, HelpCircle, LogIn, LogOut, Lock, AtSign, User as UserIcon, Shield, ChevronDown, ClipboardList, Info, Settings as SettingsIcon, Server, Globe, KeyRound } from 'lucide-react';
+
+// Collapsible content component with smooth height animation
+function CollapsibleContent({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | undefined>(isOpen ? undefined : 0);
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+
+    if (isOpen) {
+      const contentHeight = contentRef.current.scrollHeight;
+      setHeight(contentHeight);
+      // After animation completes, set to auto for dynamic content
+      const timeout = setTimeout(() => setHeight(undefined), 200);
+      return () => clearTimeout(timeout);
+    } else {
+      // First set explicit height, then animate to 0
+      const contentHeight = contentRef.current.scrollHeight;
+      setHeight(contentHeight);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setHeight(0));
+      });
+    }
+  }, [isOpen]);
+
+  return (
+    <div
+      style={{
+        height: height,
+        opacity: isOpen ? 1 : 0,
+        overflow: 'hidden',
+        transition: 'height 200ms ease-out, opacity 150ms ease-out',
+      }}
+    >
+      <div ref={contentRef}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 interface EmailSettingsInfo {
   provider: string;
@@ -197,8 +237,11 @@ export function Settings() {
           {/* Email Notifications Section */}
           <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
             <CardHeader
-              className="cursor-pointer hover:opacity-80 transition-opacity"
+              className="cursor-pointer select-none"
               onClick={() => setNotificationsExpanded(!notificationsExpanded)}
+              style={{ transition: 'background-color 150ms ease' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.bgSecondary}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -210,14 +253,26 @@ export function Settings() {
                     Manage which email alerts you want to receive
                   </CardDescription>
                 </div>
-                <ChevronDown
-                  size={20}
-                  style={{ color: colors.textMuted }}
-                  className={`transition-transform ${notificationsExpanded ? 'rotate-180' : ''}`}
-                />
+                <div
+                  className="p-1 rounded-full"
+                  style={{
+                    backgroundColor: notificationsExpanded ? colors.primaryLight : 'transparent',
+                    transition: 'all 200ms ease'
+                  }}
+                >
+                  <ChevronDown
+                    size={18}
+                    style={{
+                      color: notificationsExpanded ? colors.primary : colors.textMuted,
+                      transform: notificationsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 200ms ease, color 200ms ease'
+                    }}
+                  />
+                </div>
               </div>
             </CardHeader>
-            {notificationsExpanded && <CardContent>
+            <CollapsibleContent isOpen={notificationsExpanded}>
+              <CardContent className="pt-0">
               <div className="space-y-3">
                 {loadingPreferences ? (
                   <>
@@ -280,14 +335,18 @@ export function Settings() {
                   })
                 )}
               </div>
-            </CardContent>}
+            </CardContent>
+            </CollapsibleContent>
           </Card>
 
           {/* Email Testing Card */}
           <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
             <CardHeader
-              className="cursor-pointer hover:opacity-80 transition-opacity"
+              className="cursor-pointer select-none"
               onClick={() => setTestEmailExpanded(!testEmailExpanded)}
+              style={{ transition: 'background-color 150ms ease' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.bgSecondary}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -299,14 +358,26 @@ export function Settings() {
                     Send a test email to verify your configuration
                   </CardDescription>
                 </div>
-                <ChevronDown
-                  size={20}
-                  style={{ color: colors.textMuted }}
-                  className={`transition-transform ${testEmailExpanded ? 'rotate-180' : ''}`}
-                />
+                <div
+                  className="p-1 rounded-full"
+                  style={{
+                    backgroundColor: testEmailExpanded ? colors.primaryLight : 'transparent',
+                    transition: 'all 200ms ease'
+                  }}
+                >
+                  <ChevronDown
+                    size={18}
+                    style={{
+                      color: testEmailExpanded ? colors.primary : colors.textMuted,
+                      transform: testEmailExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 200ms ease, color 200ms ease'
+                    }}
+                  />
+                </div>
               </div>
             </CardHeader>
-            {testEmailExpanded && <CardContent>
+            <CollapsibleContent isOpen={testEmailExpanded}>
+              <CardContent className="pt-0">
               <div className="space-y-4">
                 {/* Email Configuration Display */}
                 {loadingEmailSettings ? (
@@ -456,7 +527,8 @@ export function Settings() {
                   </div>
                 )}
               </div>
-            </CardContent>}
+            </CardContent>
+            </CollapsibleContent>
           </Card>
         </div>
       </TooltipProvider>
