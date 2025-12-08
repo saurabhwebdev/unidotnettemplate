@@ -106,7 +106,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         return (
           <Avatar
             size={size}
-            name={user.email}
+            name={`${user.firstName} ${user.lastName}`}
             variant={variant as 'marble' | 'beam' | 'pixel' | 'sunset' | 'ring' | 'bauhaus'}
             colors={AVATAR_COLORS_PRESETS[colorIndex] || AVATAR_COLORS_PRESETS[0]}
           />
