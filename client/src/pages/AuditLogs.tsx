@@ -4,6 +4,8 @@ import { colors } from '../config/theme.config';
 import { auditLogsService } from '../services/auditLogs.service';
 import type { AuditLog, AuditLogFilter } from '../services/auditLogs.service';
 import { DashboardLayout } from '../components/DashboardLayout';
+import { Select } from '../components/ui/select';
+import { Pagination } from '../components/ui/pagination';
 
 export default function AuditLogs() {
   const navigate = useNavigate();
@@ -141,64 +143,37 @@ export default function AuditLogs() {
           </div>
 
           {/* Action Filter */}
-          <select
+          <Select
             value={filter.action}
-            onChange={(e) => setFilter({ ...filter, action: e.target.value, page: 1 })}
-            className="px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
-            style={{
-              backgroundColor: colors.bgTertiary,
-              color: colors.textPrimary,
-              border: `1px solid ${colors.border}`,
-            }}
-          >
-            <option value="">All Actions</option>
-            {actions.map((action) => (
-              <option key={action} value={action}>
-                {action}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setFilter({ ...filter, action: value, page: 1 })}
+            placeholder="All Actions"
+            options={actions.map((action) => ({ value: action, label: action }))}
+          />
 
           {/* Entity Type Filter */}
-          <select
+          <Select
             value={filter.entityType}
-            onChange={(e) => setFilter({ ...filter, entityType: e.target.value, page: 1 })}
-            className="px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
-            style={{
-              backgroundColor: colors.bgTertiary,
-              color: colors.textPrimary,
-              border: `1px solid ${colors.border}`,
-            }}
-          >
-            <option value="">All Entity Types</option>
-            {entityTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setFilter({ ...filter, entityType: value, page: 1 })}
+            placeholder="All Entity Types"
+            options={entityTypes.map((type) => ({ value: type, label: type }))}
+          />
 
           {/* Status Filter */}
-          <select
+          <Select
             value={filter.isSuccess === undefined ? '' : filter.isSuccess.toString()}
-            onChange={(e) =>
+            onChange={(value) =>
               setFilter({
                 ...filter,
-                isSuccess: e.target.value === '' ? undefined : e.target.value === 'true',
+                isSuccess: value === '' ? undefined : value === 'true',
                 page: 1,
               })
             }
-            className="px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
-            style={{
-              backgroundColor: colors.bgTertiary,
-              color: colors.textPrimary,
-              border: `1px solid ${colors.border}`,
-            }}
-          >
-            <option value="">All Status</option>
-            <option value="true">Success</option>
-            <option value="false">Failed</option>
-          </select>
+            placeholder="All Status"
+            options={[
+              { value: 'true', label: 'Success' },
+              { value: 'false', label: 'Failed' },
+            ]}
+          />
         </div>
 
         <div className="mt-4 flex justify-end">
@@ -348,34 +323,14 @@ export default function AuditLogs() {
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div
-            className="flex items-center justify-between px-4 py-3 border-t"
-            style={{ borderColor: colors.border }}
-          >
-            <div className="text-sm" style={{ color: colors.textMuted }}>
-              Page {filter.page} of {totalPages}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setFilter({ ...filter, page: (filter.page || 1) - 1 })}
-                disabled={filter.page === 1}
-                className="px-3 py-1 rounded-lg text-sm transition-colors disabled:opacity-50"
-                style={{ backgroundColor: colors.bgTertiary, color: colors.textPrimary }}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setFilter({ ...filter, page: (filter.page || 1) + 1 })}
-                disabled={filter.page === totalPages}
-                className="px-3 py-1 rounded-lg text-sm transition-colors disabled:opacity-50"
-                style={{ backgroundColor: colors.bgTertiary, color: colors.textPrimary }}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          currentPage={filter.page || 1}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={filter.pageSize || 20}
+          onPageChange={(page) => setFilter({ ...filter, page })}
+          onPageSizeChange={(pageSize) => setFilter({ ...filter, pageSize, page: 1 })}
+        />
       </div>
 
       {/* Detail Modal */}

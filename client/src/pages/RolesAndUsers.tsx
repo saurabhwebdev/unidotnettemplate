@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Modal } from '../components/ui/modal';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { SkeletonTable } from '../components/ui/skeleton';
+import { Pagination } from '../components/ui/pagination';
 import { colors } from '../config/theme.config';
 import { rolesService } from '../services/roles.service';
 import { usersService } from '../services/users.service';
@@ -64,6 +65,14 @@ export function RolesAndUsers() {
   const [showRoleAssignmentModal, setShowRoleAssignmentModal] = useState(false);
   const [assigningRolesFor, setAssigningRolesFor] = useState<UserWithRoles | null>(null);
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
+
+  // Pagination state
+  const [rolesPage, setRolesPage] = useState(1);
+  const [rolesPageSize, setRolesPageSize] = useState(10);
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersPageSize, setUsersPageSize] = useState(10);
+  const [routesPage, setRoutesPage] = useState(1);
+  const [routesPageSize, setRoutesPageSize] = useState(10);
 
   useEffect(() => {
     loadRoles();
@@ -270,22 +279,45 @@ export function RolesAndUsers() {
     }));
   };
 
-  const filteredUsers = users.filter(user =>
+  const filteredUsers = useMemo(() => users.filter(user =>
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.lastName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ), [users, searchQuery]);
 
-  const filteredRoles = roles.filter(role =>
+  const filteredRoles = useMemo(() => roles.filter(role =>
     role.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     role.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ), [roles, searchQuery]);
 
-  const filteredRoutes = availableRoutes.filter(route =>
+  const filteredRoutes = useMemo(() => availableRoutes.filter(route =>
     route.route.toLowerCase().includes(searchQuery.toLowerCase()) ||
     route.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     route.method.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ), [availableRoutes, searchQuery]);
+
+  // Paginated data
+  const paginatedRoles = useMemo(() => {
+    const start = (rolesPage - 1) * rolesPageSize;
+    return filteredRoles.slice(start, start + rolesPageSize);
+  }, [filteredRoles, rolesPage, rolesPageSize]);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (usersPage - 1) * usersPageSize;
+    return filteredUsers.slice(start, start + usersPageSize);
+  }, [filteredUsers, usersPage, usersPageSize]);
+
+  const paginatedRoutes = useMemo(() => {
+    const start = (routesPage - 1) * routesPageSize;
+    return filteredRoutes.slice(start, start + routesPageSize);
+  }, [filteredRoutes, routesPage, routesPageSize]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setRolesPage(1);
+    setUsersPage(1);
+    setRoutesPage(1);
+  }, [searchQuery]);
 
   return (
     <DashboardLayout>
@@ -383,7 +415,7 @@ export function RolesAndUsers() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRoles.map((role) => (
+                    {paginatedRoles.map((role) => (
                     <TableRow key={role.id} className="hover:bg-opacity-50">
                       <TableCell>
                         <div className="flex items-center gap-2 font-medium">
@@ -435,6 +467,14 @@ export function RolesAndUsers() {
                   </TableBody>
                 </Table>
               )}
+              <Pagination
+                currentPage={rolesPage}
+                totalPages={Math.ceil(filteredRoles.length / rolesPageSize)}
+                totalCount={filteredRoles.length}
+                pageSize={rolesPageSize}
+                onPageChange={setRolesPage}
+                onPageSizeChange={(size) => { setRolesPageSize(size); setRolesPage(1); }}
+              />
             </CardContent>
           </Card>
         )}
@@ -493,7 +533,7 @@ export function RolesAndUsers() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user) => (
+                    {paginatedUsers.map((user) => (
                     <TableRow key={user.id} className="hover:bg-opacity-50">
                       <TableCell>
                         <div className="flex items-center gap-2 font-medium">
@@ -574,6 +614,14 @@ export function RolesAndUsers() {
                   </TableBody>
                 </Table>
               )}
+              <Pagination
+                currentPage={usersPage}
+                totalPages={Math.ceil(filteredUsers.length / usersPageSize)}
+                totalCount={filteredUsers.length}
+                pageSize={usersPageSize}
+                onPageChange={setUsersPage}
+                onPageSizeChange={(size) => { setUsersPageSize(size); setUsersPage(1); }}
+              />
             </CardContent>
           </Card>
         )}
@@ -632,7 +680,7 @@ export function RolesAndUsers() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRoutes.map((route, index) => (
+                    {paginatedRoutes.map((route, index) => (
                     <TableRow key={index} className="hover:bg-opacity-50">
                       <TableCell>
                         <span
@@ -665,6 +713,14 @@ export function RolesAndUsers() {
                   </TableBody>
                 </Table>
               )}
+              <Pagination
+                currentPage={routesPage}
+                totalPages={Math.ceil(filteredRoutes.length / routesPageSize)}
+                totalCount={filteredRoutes.length}
+                pageSize={routesPageSize}
+                onPageChange={setRoutesPage}
+                onPageSizeChange={(size) => { setRoutesPageSize(size); setRoutesPage(1); }}
+              />
             </CardContent>
           </Card>
         )}
