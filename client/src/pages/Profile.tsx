@@ -69,6 +69,8 @@ export function Profile() {
       });
       setUser({ ...user, avatarColor: avatarSettings });
       setShowAvatarEditor(false);
+      // Dispatch event to notify header to update
+      window.dispatchEvent(new CustomEvent('avatarUpdated'));
     } catch (error) {
       console.error('Failed to save avatar:', error);
     } finally {

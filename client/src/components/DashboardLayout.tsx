@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import Avatar from 'boring-avatars';
 import { authService } from '../services/auth.service';
 import type { User as UserType } from '../services/auth.service';
 import { Button } from './ui/button';
@@ -44,19 +45,30 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await authService.getCurrentUser();
-        setUser(userData);
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-        navigate('/login');
-      }
-    };
+  const fetchUser = async () => {
+    try {
+      const userData = await authService.getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      console.error('Failed to fetch user:', error);
+      navigate('/login');
+    }
+  };
 
+  useEffect(() => {
     fetchUser();
   }, [navigate]);
+
+  // Listen for avatar updates from Profile page
+  useEffect(() => {
+    const handleAvatarUpdate = () => {
+      fetchUser();
+    };
+    window.addEventListener('avatarUpdated', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
@@ -74,6 +86,36 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const getInitials = () => {
     if (!user) return 'U';
     return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() || 'U';
+  };
+
+  const AVATAR_COLORS_PRESETS = [
+    ['#92A1C6', '#146A7C', '#F0AB3D', '#C271B4', '#C20D90'],
+    ['#A3D9FF', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+    ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe'],
+    ['#11998e', '#38ef7d', '#00b4db', '#0083b0', '#00d2d3'],
+    ['#ff9a9e', '#fecfef', '#feada6', '#fbc2eb', '#a18cd1'],
+    ['#2c3e50', '#3498db', '#e74c3c', '#1abc9c', '#9b59b6'],
+  ];
+
+  const renderAvatar = (size: number) => {
+    if (user?.avatarColor) {
+      try {
+        const saved = JSON.parse(user.avatarColor);
+        const variant = saved.variant || 'marble';
+        const colorIndex = saved.colorIndex || 0;
+        return (
+          <Avatar
+            size={size}
+            name={user.email}
+            variant={variant as 'marble' | 'beam' | 'pixel' | 'sunset' | 'ring' | 'bauhaus'}
+            colors={AVATAR_COLORS_PRESETS[colorIndex] || AVATAR_COLORS_PRESETS[0]}
+          />
+        );
+      } catch {
+        return null;
+      }
+    }
+    return null;
   };
 
   const getBreadcrumbs = () => {
@@ -433,12 +475,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="relative">
             <button
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="h-10 w-10 rounded-full flex items-center justify-center font-medium text-sm text-white transition-transform hover:scale-105"
-              style={{
+              className="h-10 w-10 rounded-full flex items-center justify-center font-medium text-sm text-white transition-transform hover:scale-105 overflow-hidden"
+              style={!user?.avatarColor ? {
                 background: 'linear-gradient(135deg, #3cca70 0%, #2a9d5a 100%)'
-              }}
+              } : undefined}
             >
-              {getInitials()}
+              {renderAvatar(40) || getInitials()}
             </button>
 
             {/* Dropdown Menu */}
@@ -459,12 +501,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <div className="p-4" style={{ borderBottom: `1px solid ${colors.border}` }}>
                     <div className="flex items-center gap-3 mb-3">
                       <div
-                        className="h-12 w-12 rounded-full flex items-center justify-center font-semibold text-white"
-                        style={{
+                        className="h-12 w-12 rounded-full flex items-center justify-center font-semibold text-white overflow-hidden"
+                        style={!user?.avatarColor ? {
                           background: 'linear-gradient(135deg, #3cca70 0%, #2a9d5a 100%)'
-                        }}
+                        } : undefined}
                       >
-                        {getInitials()}
+                        {renderAvatar(48) || getInitials()}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p
