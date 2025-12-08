@@ -28,6 +28,10 @@ import {
   Key,
   Route as RouteIcon,
   RefreshCw,
+  ChevronDown,
+  ChevronRight,
+  Check,
+  Minus,
 } from 'lucide-react';
 
 export function RolesAndUsers() {
@@ -73,6 +77,9 @@ export function RolesAndUsers() {
   const [usersPageSize, setUsersPageSize] = useState(10);
   const [routesPage, setRoutesPage] = useState(1);
   const [routesPageSize, setRoutesPageSize] = useState(10);
+
+  // Permission groups expanded state
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadRoles();
@@ -277,6 +284,82 @@ export function RolesAndUsers() {
         ? prev.permissions.filter(p => p !== permission)
         : [...prev.permissions, permission]
     }));
+  };
+
+  // Permission group configuration - maps controller names to user-friendly feature names
+  const permissionGroupConfig: Record<string, { name: string; description: string; icon: string }> = {
+    'Users': { name: 'User Management', description: 'Create, view, update, and delete users', icon: 'users' },
+    'Roles': { name: 'Role Management', description: 'Manage roles and permissions', icon: 'shield' },
+    'Auth': { name: 'Authentication', description: 'Login, logout, and password management', icon: 'key' },
+    'AuditLogs': { name: 'Audit Logs', description: 'View system activity and logs', icon: 'file-text' },
+    'Routes': { name: 'API Routes', description: 'View available API endpoints', icon: 'route' },
+    'EmailPreferences': { name: 'Email Settings', description: 'Manage email notification preferences', icon: 'mail' },
+    'EmailTest': { name: 'Email Testing', description: 'Test email configuration', icon: 'send' },
+  };
+
+  // Group routes by controller
+  const groupedRoutes = useMemo(() => {
+    const groups: Record<string, ApiRoute[]> = {};
+    availableRoutes.forEach(route => {
+      const controller = route.controller || 'Other';
+      if (!groups[controller]) {
+        groups[controller] = [];
+      }
+      groups[controller].push(route);
+    });
+    // Sort routes within each group by method priority (GET, POST, PUT, DELETE)
+    const methodOrder = ['GET', 'POST', 'PUT', 'DELETE'];
+    Object.keys(groups).forEach(key => {
+      groups[key].sort((a, b) => methodOrder.indexOf(a.method) - methodOrder.indexOf(b.method));
+    });
+    return groups;
+  }, [availableRoutes]);
+
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupName)) {
+        next.delete(groupName);
+      } else {
+        next.add(groupName);
+      }
+      return next;
+    });
+  };
+
+  const toggleAllInGroup = (groupName: string) => {
+    const groupRoutes = groupedRoutes[groupName] || [];
+    const groupPermissions = groupRoutes.map(r => `${r.method}:${r.route}`);
+    const allSelected = groupPermissions.every(p => roleFormData.permissions.includes(p));
+
+    setRoleFormData(prev => {
+      if (allSelected) {
+        // Deselect all in this group
+        return {
+          ...prev,
+          permissions: prev.permissions.filter(p => !groupPermissions.includes(p))
+        };
+      } else {
+        // Select all in this group
+        const newPermissions = new Set([...prev.permissions, ...groupPermissions]);
+        return {
+          ...prev,
+          permissions: Array.from(newPermissions)
+        };
+      }
+    });
+  };
+
+  const getGroupSelectionState = (groupName: string): 'none' | 'some' | 'all' => {
+    const groupRoutes = groupedRoutes[groupName] || [];
+    if (groupRoutes.length === 0) return 'none';
+
+    const groupPermissions = groupRoutes.map(r => `${r.method}:${r.route}`);
+    const selectedCount = groupPermissions.filter(p => roleFormData.permissions.includes(p)).length;
+
+    if (selectedCount === 0) return 'none';
+    if (selectedCount === groupPermissions.length) return 'all';
+    return 'some';
   };
 
   const filteredUsers = useMemo(() => users.filter(user =>
@@ -762,56 +845,142 @@ export function RolesAndUsers() {
             <div>
               <label className="block text-sm font-medium mb-3 flex items-center gap-2" style={{ color: colors.textSecondary }}>
                 <Key size={16} />
-                Permissions (Routes & Methods)
+                Permissions by Feature
               </label>
-              <div className="space-y-2 max-h-64 overflow-y-auto p-3 rounded-lg" style={{ backgroundColor: colors.bgSecondary }}>
-                {availableRoutes.map((route) => {
-                  const permissionKey = `${route.method}:${route.route}`;
-                  const isSelected = roleFormData.permissions.includes(permissionKey);
+              <p className="text-xs mb-3" style={{ color: colors.textMuted }}>
+                Select which features this role can access. Click on a feature header to expand and see individual API endpoints.
+              </p>
+              <div className="space-y-2 max-h-80 overflow-y-auto p-3 rounded-lg" style={{ backgroundColor: colors.bgSecondary }}>
+                {Object.entries(groupedRoutes).map(([controllerName, routes]) => {
+                  const config = permissionGroupConfig[controllerName] || {
+                    name: controllerName,
+                    description: `Access to ${controllerName} endpoints`,
+                    icon: 'folder'
+                  };
+                  const isExpanded = expandedGroups.has(controllerName);
+                  const selectionState = getGroupSelectionState(controllerName);
+                  const selectedCount = routes.filter(r =>
+                    roleFormData.permissions.includes(`${r.method}:${r.route}`)
+                  ).length;
+
                   return (
-                    <div
-                      key={permissionKey}
-                      onClick={() => !editingRole?.isSystemRole && togglePermission(permissionKey)}
-                      className={`p-3 rounded-lg cursor-pointer transition-all ${
-                        editingRole?.isSystemRole ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02]'
-                      }`}
-                      style={{
-                        backgroundColor: isSelected ? colors.primaryLight : colors.bgPrimary,
-                        border: `1px solid ${isSelected ? colors.primary : colors.border}`
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => {}}
-                            disabled={editingRole?.isSystemRole}
-                            className="rounded"
-                          />
-                          <div>
+                    <div key={controllerName} className="rounded-lg overflow-hidden" style={{ border: `1px solid ${colors.border}` }}>
+                      {/* Group Header */}
+                      <div
+                        className={`p-3 flex items-center justify-between ${
+                          editingRole?.isSystemRole ? 'opacity-50' : 'cursor-pointer hover:bg-opacity-80'
+                        }`}
+                        style={{
+                          backgroundColor: selectionState !== 'none' ? colors.primaryLight : colors.bgPrimary
+                        }}
+                      >
+                        <div
+                          className="flex items-center gap-3 flex-1"
+                          onClick={() => !editingRole?.isSystemRole && toggleGroup(controllerName)}
+                        >
+                          {isExpanded ? (
+                            <ChevronDown size={18} style={{ color: colors.textMuted }} />
+                          ) : (
+                            <ChevronRight size={18} style={{ color: colors.textMuted }} />
+                          )}
+                          <div className="flex-1">
                             <div className="flex items-center gap-2">
+                              <span className="font-medium" style={{ color: colors.textPrimary }}>
+                                {config.name}
+                              </span>
                               <span
-                                className="text-xs px-2 py-1 rounded font-semibold"
+                                className="text-xs px-2 py-0.5 rounded"
                                 style={{
-                                  backgroundColor: route.method === 'GET' ? '#10b981' :
-                                                 route.method === 'POST' ? '#3b82f6' :
-                                                 route.method === 'PUT' ? '#f59e0b' : '#ef4444',
-                                  color: 'white'
+                                  backgroundColor: selectionState === 'all' ? colors.primary :
+                                                   selectionState === 'some' ? colors.primaryLight : colors.bgSecondary,
+                                  color: selectionState === 'all' ? 'white' : colors.textMuted
                                 }}
                               >
-                                {route.method}
+                                {selectedCount}/{routes.length}
                               </span>
-                              <code className="text-sm font-mono" style={{ color: colors.textPrimary }}>
-                                {route.route}
-                              </code>
                             </div>
-                            <p className="text-xs mt-1" style={{ color: colors.textMuted }}>
-                              {route.description}
+                            <p className="text-xs mt-0.5" style={{ color: colors.textMuted }}>
+                              {config.description}
                             </p>
                           </div>
                         </div>
+                        {/* Select All Checkbox */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!editingRole?.isSystemRole) {
+                              toggleAllInGroup(controllerName);
+                            }
+                          }}
+                          disabled={editingRole?.isSystemRole}
+                          className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
+                            editingRole?.isSystemRole ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-80'
+                          }`}
+                          style={{
+                            backgroundColor: selectionState === 'all' ? colors.primary :
+                                           selectionState === 'some' ? colors.primary : colors.bgSecondary,
+                            border: selectionState === 'none' ? `2px solid ${colors.border}` : 'none'
+                          }}
+                          title={selectionState === 'all' ? 'Deselect all' : 'Select all'}
+                        >
+                          {selectionState === 'all' && <Check size={14} className="text-white" />}
+                          {selectionState === 'some' && <Minus size={14} className="text-white" />}
+                        </button>
                       </div>
+
+                      {/* Expanded Routes */}
+                      {isExpanded && (
+                        <div className="border-t" style={{ borderColor: colors.border, backgroundColor: colors.bgPrimary }}>
+                          {routes.map((route) => {
+                            const permissionKey = `${route.method}:${route.route}`;
+                            const isSelected = roleFormData.permissions.includes(permissionKey);
+                            return (
+                              <div
+                                key={permissionKey}
+                                onClick={() => !editingRole?.isSystemRole && togglePermission(permissionKey)}
+                                className={`p-2.5 pl-10 flex items-center gap-3 border-b last:border-b-0 ${
+                                  editingRole?.isSystemRole ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-opacity-50'
+                                }`}
+                                style={{
+                                  borderColor: colors.border,
+                                  backgroundColor: isSelected ? `${colors.primaryLight}50` : 'transparent'
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {}}
+                                  disabled={editingRole?.isSystemRole}
+                                  className="rounded"
+                                  style={{ accentColor: colors.primary }}
+                                />
+                                <span
+                                  className="text-xs px-2 py-0.5 rounded font-semibold shrink-0"
+                                  style={{
+                                    backgroundColor: route.method === 'GET' ? '#10b981' :
+                                                   route.method === 'POST' ? '#3b82f6' :
+                                                   route.method === 'PUT' ? '#f59e0b' : '#ef4444',
+                                    color: 'white',
+                                    minWidth: '52px',
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  {route.method}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <code className="text-xs font-mono block truncate" style={{ color: colors.textPrimary }}>
+                                    {route.route}
+                                  </code>
+                                  <p className="text-xs truncate" style={{ color: colors.textMuted }}>
+                                    {route.description}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
