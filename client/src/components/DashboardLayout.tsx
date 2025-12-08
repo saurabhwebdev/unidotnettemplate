@@ -291,7 +291,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   <ChevronLeft
                     className={cn(
-                      'h-5 w-5 flex-shrink-0 transition-transform',
+                      'h-5 w-5 flex-shrink-0 transition-transform animate-nudge',
                       !sidebarOpen && 'rotate-180'
                     )}
                   />

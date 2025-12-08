@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from 'boring-avatars';
 import { authService } from '../services/auth.service';
-import type { User } from '../services/auth.service';
+import type { User, UpdateProfileRequest } from '../services/auth.service';
 import { usersService } from '../services/users.service';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { Skeleton } from '../components/ui/skeleton';
 import { colors } from '../config/theme.config';
+import { Pencil, X, Check, Loader2, Building2, Phone, MapPin, Calendar, Users, Briefcase, BadgeCheck } from 'lucide-react';
 
 const AVATAR_VARIANTS = ['marble', 'beam', 'pixel', 'sunset', 'ring', 'bauhaus'] as const;
 const AVATAR_COLORS_PRESETS = [
@@ -28,6 +30,18 @@ export function Profile() {
   const [selectedVariant, setSelectedVariant] = useState<typeof AVATAR_VARIANTS[number]>('marble');
   const [selectedColors, setSelectedColors] = useState(0);
   const [savingAvatar, setSavingAvatar] = useState(false);
+
+  // Profile editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [editForm, setEditForm] = useState<UpdateProfileRequest>({
+    firstName: '',
+    lastName: '',
+    phoneNumber: null,
+    officeLocation: null
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -91,6 +105,58 @@ export function Profile() {
       }
     }
     return { variant: 'marble' as const, colorIndex: 0 };
+  };
+
+  const handleStartEdit = () => {
+    if (user) {
+      setEditForm({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber || null,
+        officeLocation: user.officeLocation || null
+      });
+      setIsEditing(true);
+      setSaveError(null);
+      setSaveSuccess(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditForm({
+      firstName: '',
+      lastName: '',
+      phoneNumber: null,
+      officeLocation: null
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSavingProfile(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+    try {
+      const updatedUser = await authService.updateProfile(editForm);
+      setUser(updatedUser);
+      setIsEditing(false);
+      setSaveSuccess(true);
+      // Hide success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000);
+      // Dispatch event to notify header to update
+      window.dispatchEvent(new CustomEvent('avatarUpdated'));
+    } catch (error: any) {
+      console.error('Failed to save profile:', error);
+      setSaveError(error.response?.data?.message || 'Failed to save profile. Please try again.');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   if (loading) {
@@ -216,13 +282,73 @@ export function Profile() {
 
           {/* Personal Information */}
           <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader>
-              <CardTitle style={{ color: colors.textPrimary }}>Personal Information</CardTitle>
-              <CardDescription style={{ color: colors.textMuted }}>
-                Your account details and information
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle style={{ color: colors.textPrimary }}>Personal Information</CardTitle>
+                <CardDescription style={{ color: colors.textMuted }}>
+                  Your account details and information
+                </CardDescription>
+              </div>
+              {!isEditing ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleStartEdit}
+                  className="flex items-center gap-2"
+                  style={{ borderColor: colors.border, color: colors.textPrimary }}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                    className="flex items-center gap-2"
+                    style={{ borderColor: colors.border, color: colors.textMuted }}
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveProfile}
+                    disabled={savingProfile}
+                    className="flex items-center gap-2"
+                    style={{ backgroundColor: colors.primary, color: 'white' }}
+                  >
+                    {savingProfile ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4" />
+                    )}
+                    Save
+                  </Button>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="space-y-4" style={{ color: colors.textSecondary }}>
+              {/* Success/Error Messages */}
+              {saveSuccess && (
+                <div
+                  className="text-sm p-3 rounded-md flex items-center gap-2"
+                  style={{ backgroundColor: '#d1fae5', color: '#065f46' }}
+                >
+                  <Check className="h-4 w-4" />
+                  Profile updated successfully!
+                </div>
+              )}
+              {saveError && (
+                <div
+                  className="text-sm p-3 rounded-md"
+                  style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}
+                >
+                  {saveError}
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label
@@ -231,7 +357,15 @@ export function Profile() {
                   >
                     First Name
                   </label>
-                  <p style={{ color: colors.textPrimary }}>{user?.firstName}</p>
+                  {isEditing ? (
+                    <Input
+                      value={editForm.firstName}
+                      onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+                      style={{ borderColor: colors.border, color: colors.textPrimary }}
+                    />
+                  ) : (
+                    <p style={{ color: colors.textPrimary }}>{user?.firstName}</p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -240,7 +374,15 @@ export function Profile() {
                   >
                     Last Name
                   </label>
-                  <p style={{ color: colors.textPrimary }}>{user?.lastName}</p>
+                  {isEditing ? (
+                    <Input
+                      value={editForm.lastName}
+                      onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+                      style={{ borderColor: colors.border, color: colors.textPrimary }}
+                    />
+                  ) : (
+                    <p style={{ color: colors.textPrimary }}>{user?.lastName}</p>
+                  )}
                 </div>
               </div>
               <div>
@@ -251,6 +393,50 @@ export function Profile() {
                   Email Address
                 </label>
                 <p style={{ color: colors.textPrimary }}>{user?.email}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    className="text-sm font-medium block mb-1 flex items-center gap-2"
+                    style={{ color: colors.textMuted }}
+                  >
+                    <Phone className="h-4 w-4" />
+                    Phone Number
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={editForm.phoneNumber || ''}
+                      onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value || null })}
+                      placeholder="Enter phone number"
+                      style={{ borderColor: colors.border, color: colors.textPrimary }}
+                    />
+                  ) : (
+                    <p style={{ color: user?.phoneNumber ? colors.textPrimary : colors.textMuted }}>
+                      {user?.phoneNumber || 'Not set'}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label
+                    className="text-sm font-medium block mb-1 flex items-center gap-2"
+                    style={{ color: colors.textMuted }}
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Office Location
+                  </label>
+                  {isEditing ? (
+                    <Input
+                      value={editForm.officeLocation || ''}
+                      onChange={(e) => setEditForm({ ...editForm, officeLocation: e.target.value || null })}
+                      placeholder="Enter office location"
+                      style={{ borderColor: colors.border, color: colors.textPrimary }}
+                    />
+                  ) : (
+                    <p style={{ color: user?.officeLocation ? colors.textPrimary : colors.textMuted }}>
+                      {user?.officeLocation || 'Not set'}
+                    </p>
+                  )}
+                </div>
               </div>
               <div>
                 <label
@@ -265,6 +451,83 @@ export function Profile() {
                 >
                   {user?.id}
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Employee Information */}
+          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2" style={{ color: colors.textPrimary }}>
+                <Briefcase className="h-5 w-5" />
+                Employee Information
+              </CardTitle>
+              <CardDescription style={{ color: colors.textMuted }}>
+                Your organizational details (managed by administrators)
+              </CardDescription>
+            </CardHeader>
+            <CardContent style={{ color: colors.textSecondary }}>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label
+                    className="text-sm font-medium block mb-1 flex items-center gap-2"
+                    style={{ color: colors.textMuted }}
+                  >
+                    <BadgeCheck className="h-4 w-4" />
+                    Employee ID
+                  </label>
+                  <p style={{ color: user?.employeeId ? colors.textPrimary : colors.textMuted }}>
+                    {user?.employeeId || 'Not assigned'}
+                  </p>
+                </div>
+                <div>
+                  <label
+                    className="text-sm font-medium block mb-1 flex items-center gap-2"
+                    style={{ color: colors.textMuted }}
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    Designation
+                  </label>
+                  <p style={{ color: user?.designation ? colors.textPrimary : colors.textMuted }}>
+                    {user?.designation || 'Not assigned'}
+                  </p>
+                </div>
+                <div>
+                  <label
+                    className="text-sm font-medium block mb-1 flex items-center gap-2"
+                    style={{ color: colors.textMuted }}
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Department
+                  </label>
+                  <p style={{ color: user?.department ? colors.textPrimary : colors.textMuted }}>
+                    {user?.department || 'Not assigned'}
+                  </p>
+                </div>
+                <div>
+                  <label
+                    className="text-sm font-medium block mb-1 flex items-center gap-2"
+                    style={{ color: colors.textMuted }}
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Date of Joining
+                  </label>
+                  <p style={{ color: user?.dateOfJoining ? colors.textPrimary : colors.textMuted }}>
+                    {formatDate(user?.dateOfJoining)}
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <label
+                    className="text-sm font-medium block mb-1 flex items-center gap-2"
+                    style={{ color: colors.textMuted }}
+                  >
+                    <Users className="h-4 w-4" />
+                    Reports To
+                  </label>
+                  <p style={{ color: user?.reportsToName ? colors.textPrimary : colors.textMuted }}>
+                    {user?.reportsToName || 'Not assigned'}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

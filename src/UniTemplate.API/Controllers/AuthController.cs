@@ -147,31 +147,88 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GetCurrentUser()
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-        var firstName = User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value;
-        var lastName = User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value;
 
-        // Get avatar info from database
-        string? avatarUrl = null;
-        string? avatarColor = null;
-        if (Guid.TryParse(userId, out var userGuid))
+        if (!Guid.TryParse(userId, out var userGuid))
         {
-            var user = await _context.Users.FindAsync(userGuid);
-            if (user != null)
-            {
-                avatarUrl = user.AvatarUrl;
-                avatarColor = user.AvatarColor;
-            }
+            return Unauthorized(new { message = "Invalid user" });
+        }
+
+        var user = await _context.Users
+            .Include(u => u.ReportsTo)
+            .FirstOrDefaultAsync(u => u.Id == userGuid);
+
+        if (user == null)
+        {
+            return NotFound(new { message = "User not found" });
         }
 
         return Ok(new
         {
-            id = userId,
-            email,
-            firstName,
-            lastName,
-            avatarUrl,
-            avatarColor
+            id = user.Id.ToString(),
+            email = user.Email,
+            firstName = user.FirstName,
+            lastName = user.LastName,
+            avatarUrl = user.AvatarUrl,
+            avatarColor = user.AvatarColor,
+            employeeId = user.EmployeeId,
+            designation = user.Designation,
+            department = user.Department,
+            phoneNumber = user.PhoneNumber,
+            officeLocation = user.OfficeLocation,
+            dateOfJoining = user.DateOfJoining?.ToString("yyyy-MM-dd"),
+            reportsToId = user.ReportsToId?.ToString(),
+            reportsToName = user.ReportsTo != null ? $"{user.ReportsTo.FirstName} {user.ReportsTo.LastName}" : null
+        });
+    }
+
+    [Authorize]
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateCurrentUser([FromBody] UpdateProfileDto dto)
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userId, out var userGuid))
+        {
+            return Unauthorized(new { message = "Invalid user" });
+        }
+
+        var user = await _context.Users
+            .Include(u => u.ReportsTo)
+            .FirstOrDefaultAsync(u => u.Id == userGuid);
+
+        if (user == null)
+        {
+            return NotFound(new { message = "User not found" });
+        }
+
+        // Update editable fields
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.PhoneNumber = dto.PhoneNumber;
+        user.OfficeLocation = dto.OfficeLocation;
+
+        await _context.SaveChangesAsync();
+
+        await _auditLogService.LogActionAsync(userGuid, user.Email, "UpdateProfile", "User",
+            userGuid.ToString(), null, new { dto.FirstName, dto.LastName, dto.PhoneNumber, dto.OfficeLocation },
+            GetClientIpAddress(), GetUserAgent(), "User updated their profile");
+
+        return Ok(new
+        {
+            id = user.Id.ToString(),
+            email = user.Email,
+            firstName = user.FirstName,
+            lastName = user.LastName,
+            avatarUrl = user.AvatarUrl,
+            avatarColor = user.AvatarColor,
+            employeeId = user.EmployeeId,
+            designation = user.Designation,
+            department = user.Department,
+            phoneNumber = user.PhoneNumber,
+            officeLocation = user.OfficeLocation,
+            dateOfJoining = user.DateOfJoining?.ToString("yyyy-MM-dd"),
+            reportsToId = user.ReportsToId?.ToString(),
+            reportsToName = user.ReportsTo != null ? $"{user.ReportsTo.FirstName} {user.ReportsTo.LastName}" : null
         });
     }
 

@@ -32,6 +32,23 @@ export interface User {
   lastName: string;
   avatarUrl?: string | null;
   avatarColor?: string | null;
+
+  // Enterprise/Employee Information
+  employeeId?: string | null;
+  designation?: string | null;
+  department?: string | null;
+  phoneNumber?: string | null;
+  officeLocation?: string | null;
+  dateOfJoining?: string | null;
+  reportsToId?: string | null;
+  reportsToName?: string | null;
+}
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string | null;
+  officeLocation?: string | null;
 }
 
 class AuthService {
@@ -50,6 +67,11 @@ class AuthService {
 
   async getCurrentUser(): Promise<User> {
     const response = await api.get<User>('/auth/me');
+    return response.data;
+  }
+
+  async updateProfile(data: UpdateProfileRequest): Promise<User> {
+    const response = await api.put<User>('/auth/me', data);
     return response.data;
   }
 
