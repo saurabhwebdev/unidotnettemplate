@@ -225,7 +225,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Bottom Section */}
           <div
             className="p-3 space-y-1"
-            style={{ borderTop: `1px solid ${colors.border}` }}
           >
             {/* Logout Button */}
             {!sidebarOpen ? (
@@ -589,7 +588,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="p-4 sm:p-6 lg:p-8 min-h-[calc(100vh-8rem)]">
           <div
             key={location.pathname}
             className="animate-fade-in"
@@ -597,6 +596,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {children}
           </div>
         </main>
+
+        {/* Footer */}
+        <footer
+          className="px-4 sm:px-6 lg:px-8 py-4 text-center text-sm"
+          style={{
+            color: colors.textMuted,
+            borderTop: `1px solid ${colors.border}`,
+          }}
+        >
+          © {new Date().getFullYear()} Unison Mining PTE Ltd. All rights reserved.
+        </footer>
       </div>
     </div>
   );
