@@ -291,8 +291,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 >
                   <ChevronLeft
                     className={cn(
-                      'h-5 w-5 flex-shrink-0 transition-transform animate-nudge',
-                      !sidebarOpen && 'rotate-180'
+                      'h-5 w-5 flex-shrink-0 transition-transform',
+                      !sidebarOpen && 'rotate-180 animate-nudge'
                     )}
                   />
                   {sidebarOpen && <span>Collapse</span>}
@@ -316,7 +316,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <ChevronLeft
                   className={cn(
                     'h-5 w-5 flex-shrink-0 transition-transform',
-                    !sidebarOpen && 'rotate-180'
+                    !sidebarOpen && 'rotate-180 animate-nudge'
                   )}
                 />
                 {sidebarOpen && <span>Collapse</span>}
