@@ -288,12 +288,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  <ChevronLeft
-                    className={cn(
-                      'h-5 w-5 flex-shrink-0 transition-transform',
-                      !sidebarOpen && 'rotate-180 animate-nudge'
-                    )}
-                  />
+                  <ChevronRight className="h-5 w-5 flex-shrink-0 animate-nudge" />
                   {sidebarOpen && <span>Collapse</span>}
                 </button>
               </Tooltip>
@@ -312,12 +307,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
-                <ChevronLeft
-                  className={cn(
-                    'h-5 w-5 flex-shrink-0 transition-transform',
-                    !sidebarOpen && 'rotate-180 animate-nudge'
-                  )}
-                />
+                <ChevronLeft className="h-5 w-5 flex-shrink-0" />
                 {sidebarOpen && <span>Collapse</span>}
               </button>
             )}
