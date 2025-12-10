@@ -994,38 +994,61 @@ export function RolesAndUsers() {
           title={editingRole ? 'Edit Role' : 'Create New Role'}
           size="lg"
         >
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
-                Role Name
-              </label>
-              <Input
-                value={roleFormData.name}
-                onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
-                placeholder="Enter role name"
-                disabled={editingRole?.isSystemRole}
-              />
+          <div className="space-y-4">
+            <div style={{ border: `1px solid ${colors.border}` }}>
+              <div
+                className="px-4 py-2"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  borderBottom: `1px solid ${colors.border}`
+                }}
+              >
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Role Details
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
+                    Role Name
+                  </label>
+                  <Input
+                    value={roleFormData.name}
+                    onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
+                    placeholder="Enter role name"
+                    disabled={editingRole?.isSystemRole}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
+                    Description
+                  </label>
+                  <Input
+                    value={roleFormData.description}
+                    onChange={(e) => setRoleFormData({ ...roleFormData, description: e.target.value })}
+                    placeholder="Enter role description"
+                    disabled={editingRole?.isSystemRole}
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
-                Description
-              </label>
-              <Input
-                value={roleFormData.description}
-                onChange={(e) => setRoleFormData({ ...roleFormData, description: e.target.value })}
-                placeholder="Enter role description"
-                disabled={editingRole?.isSystemRole}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-3 flex items-center gap-2" style={{ color: colors.textSecondary }}>
-                <Key size={16} />
-                Permissions by Feature
-              </label>
-              <p className="text-xs mb-3" style={{ color: colors.textMuted }}>
-                Select which features this role can access. Click on a feature header to expand and see individual API endpoints.
-              </p>
-              <div className="space-y-2 max-h-80 overflow-y-auto p-3 rounded-lg" style={{ backgroundColor: colors.bgSecondary }}>
+
+            <div style={{ border: `1px solid ${colors.border}` }}>
+              <div
+                className="px-4 py-2"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  borderBottom: `1px solid ${colors.border}`
+                }}
+              >
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Permissions
+                </h3>
+                <p className="text-xs mt-1" style={{ color: colors.textMuted }}>
+                  Click on a feature to expand and see individual endpoints
+                </p>
+              </div>
+              <div className="space-y-0 max-h-80 overflow-y-auto"  style={{ backgroundColor: colors.bgPrimary }}>
                 {Object.entries(groupedRoutes).map(([controllerName, routes]) => {
                   const config = permissionGroupConfig[controllerName] || {
                     name: controllerName,
@@ -1039,7 +1062,7 @@ export function RolesAndUsers() {
                   ).length;
 
                   return (
-                    <div key={controllerName} className="rounded-lg overflow-hidden" style={{ border: `1px solid ${colors.border}` }}>
+                    <div key={controllerName} style={{ borderBottom: `1px solid ${colors.border}` }}>
                       {/* Group Header */}
                       <div
                         className={`p-3 flex items-center justify-between ${
@@ -1161,27 +1184,32 @@ export function RolesAndUsers() {
                 })}
               </div>
             </div>
-            <div className="flex gap-2 pt-4 border-t" style={{ borderColor: colors.border }}>
-              <Button
+            <div className="flex gap-2 pt-4">
+              <button
                 onClick={editingRole ? handleUpdateRole : handleCreateRole}
-                style={{ backgroundColor: colors.primary }}
-                className="text-white hover:opacity-90 flex-1 flex items-center gap-2 justify-center"
+                className="flex-1 px-4 py-2 text-sm font-medium flex items-center justify-center gap-2"
+                style={{ backgroundColor: colors.primary, color: 'white' }}
                 disabled={editingRole?.isSystemRole || savingRole}
               >
-                {savingRole && <Loader2 size={16} className="animate-spin" />}
+                {savingRole && <Loader2 size={14} className="animate-spin" />}
                 {savingRole ? 'Saving...' : editingRole ? 'Update Role' : 'Create Role'}
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={() => {
                   setShowRoleModal(false);
                   setEditingRole(null);
                   setRoleFormData({ name: '', description: '', permissions: [] });
                 }}
-                variant="outline"
+                className="px-4 py-2 text-sm font-medium"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  border: `1px solid ${colors.border}`,
+                  color: colors.textPrimary
+                }}
                 disabled={savingRole}
               >
                 Cancel
-              </Button>
+              </button>
             </div>
           </div>
         </Modal>
@@ -1197,16 +1225,23 @@ export function RolesAndUsers() {
           title={editingUser ? 'Edit User' : 'Create New User'}
           size="xl"
         >
-          <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-2">
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
             {/* Basic Information Section */}
-            <div>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: colors.textPrimary }}>
-                <UsersIcon size={16} />
-                Basic Information
-              </h3>
-              <div className="space-y-3 pl-6">
+            <div style={{ border: `1px solid ${colors.border}` }}>
+              <div
+                className="px-4 py-2"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  borderBottom: `1px solid ${colors.border}`
+                }}
+              >
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Basic Information
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                     Email
                   </label>
                   <Input
@@ -1219,7 +1254,7 @@ export function RolesAndUsers() {
                 </div>
                 {!editingUser && (
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                    <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                       Password
                     </label>
                     <Input
@@ -1232,7 +1267,7 @@ export function RolesAndUsers() {
                 )}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                    <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                       First Name
                     </label>
                     <Input
@@ -1242,7 +1277,7 @@ export function RolesAndUsers() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                    <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                       Last Name
                     </label>
                     <Input
@@ -1253,7 +1288,7 @@ export function RolesAndUsers() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: colors.textSecondary }}>
+                  <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                     Phone Number
                   </label>
                   <Input
@@ -1267,16 +1302,22 @@ export function RolesAndUsers() {
             </div>
 
             {/* Employee Information Section */}
-            <div className="pt-2 border-t" style={{ borderColor: colors.border }}>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: colors.textPrimary }}>
-                <Briefcase size={16} />
-                Employee Information
-              </h3>
-              <div className="space-y-3 pl-6">
+            <div style={{ border: `1px solid ${colors.border}` }}>
+              <div
+                className="px-4 py-2"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  borderBottom: `1px solid ${colors.border}`
+                }}
+              >
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Employee Information
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
-                      <BadgeCheck size={14} />
+                    <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                       Employee ID
                     </label>
                     <Input
@@ -1286,8 +1327,7 @@ export function RolesAndUsers() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
-                      <UserCog size={14} />
+                    <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                       Designation
                     </label>
                     <Input
@@ -1299,8 +1339,7 @@ export function RolesAndUsers() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
-                      <Building2 size={14} />
+                    <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                       Department
                     </label>
                     <Input
@@ -1310,8 +1349,7 @@ export function RolesAndUsers() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
-                      <MapPin size={14} />
+                    <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                       Office Location
                     </label>
                     <Input
@@ -1323,8 +1361,7 @@ export function RolesAndUsers() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
-                      <Calendar size={14} />
+                    <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                       Date of Joining
                     </label>
                     <Input
@@ -1334,8 +1371,7 @@ export function RolesAndUsers() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5 flex items-center gap-1.5" style={{ color: colors.textSecondary }}>
-                      <UsersIcon size={14} />
+                    <label className="block text-xs font-medium mb-1.5 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                       Reports To
                     </label>
                     <select
@@ -1363,12 +1399,19 @@ export function RolesAndUsers() {
             </div>
 
             {/* Status & Roles Section */}
-            <div className="pt-2 border-t" style={{ borderColor: colors.border }}>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: colors.textPrimary }}>
-                <Shield size={16} />
-                Status & Roles
-              </h3>
-              <div className="space-y-3 pl-6">
+            <div style={{ border: `1px solid ${colors.border}` }}>
+              <div
+                className="px-4 py-2"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  borderBottom: `1px solid ${colors.border}`
+                }}
+              >
+                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Status & Roles
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
                 {editingUser && (
                   <div className="flex items-center gap-2">
                     <input
@@ -1385,26 +1428,38 @@ export function RolesAndUsers() {
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
+                  <label className="block text-xs font-medium mb-2 uppercase tracking-wider" style={{ color: colors.textSecondary }}>
                     Assign Roles
                   </label>
-                  <div className="flex flex-wrap gap-2">
-                    {roles.map((role) => {
+                  <div style={{ border: `1px solid ${colors.border}`, maxHeight: '200px', overflowY: 'auto' }}>
+                    {roles.map((role, index) => {
                       const isSelected = userFormData.roleIds.includes(role.id);
                       return (
-                        <button
+                        <div
                           key={role.id}
-                          type="button"
                           onClick={() => toggleRoleInUserForm(role.id)}
-                          className="px-3 py-1.5 rounded text-sm font-medium transition-all hover:scale-105"
+                          className="flex items-center gap-3 px-3 py-2 cursor-pointer"
                           style={{
-                            backgroundColor: isSelected ? colors.primary : colors.bgSecondary,
-                            color: isSelected ? 'white' : colors.textSecondary,
-                            border: `1px solid ${isSelected ? colors.primary : colors.border}`
+                            backgroundColor: index % 2 === 0 ? colors.bgPrimary : colors.bgSecondary,
+                            borderBottom: index !== roles.length - 1 ? `1px solid ${colors.border}` : 'none'
                           }}
                         >
-                          {role.name}
-                        </button>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="w-4 h-4"
+                            style={{ accentColor: colors.primary }}
+                          />
+                          <div className="flex-1">
+                            <div className="text-xs font-medium" style={{ color: colors.textPrimary }}>
+                              {role.name}
+                            </div>
+                            <div className="text-xs" style={{ color: colors.textMuted }}>
+                              {role.description}
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
@@ -1413,27 +1468,32 @@ export function RolesAndUsers() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 pt-4 border-t sticky bottom-0 bg-inherit" style={{ borderColor: colors.border, backgroundColor: colors.bgPrimary }}>
-              <Button
+            <div className="flex gap-2 pt-4">
+              <button
                 onClick={editingUser ? handleUpdateUser : handleCreateUser}
-                style={{ backgroundColor: colors.primary }}
-                className="text-white hover:opacity-90 flex-1 flex items-center gap-2 justify-center"
+                className="flex-1 px-4 py-2 text-sm font-medium flex items-center justify-center gap-2"
+                style={{ backgroundColor: colors.primary, color: 'white' }}
                 disabled={savingUser}
               >
-                {savingUser && <Loader2 size={16} className="animate-spin" />}
+                {savingUser && <Loader2 size={14} className="animate-spin" />}
                 {savingUser ? 'Saving...' : editingUser ? 'Update User' : 'Create User'}
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={() => {
                   setShowUserModal(false);
                   setEditingUser(null);
                   setUserFormData(getDefaultUserFormData());
                 }}
-                variant="outline"
+                className="px-4 py-2 text-sm font-medium"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  border: `1px solid ${colors.border}`,
+                  color: colors.textPrimary
+                }}
                 disabled={savingUser}
               >
                 Cancel
-              </Button>
+              </button>
             </div>
           </div>
         </Modal>
@@ -1446,49 +1506,75 @@ export function RolesAndUsers() {
             setAssigningRolesFor(null);
             setSelectedRoleIds([]);
           }}
-          title={`Assign Roles to ${assigningRolesFor?.firstName} ${assigningRolesFor?.lastName}`}
+          title={`Assign Roles - ${assigningRolesFor?.firstName} ${assigningRolesFor?.lastName}`}
         >
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {roles.map((role) => {
+          <div>
+            {/* Roles List */}
+            <div style={{ border: `1px solid ${colors.border}` }}>
+              {roles.map((role, index) => {
                 const isSelected = selectedRoleIds.includes(role.id);
                 return (
-                  <button
+                  <div
                     key={role.id}
                     onClick={() => toggleRoleSelection(role.id)}
-                    className="px-3 py-2 rounded text-sm font-medium transition-all hover:scale-105"
+                    className="grid grid-cols-12 px-4 py-3 cursor-pointer"
                     style={{
-                      backgroundColor: isSelected ? colors.primary : colors.bgSecondary,
-                      color: isSelected ? 'white' : colors.textSecondary,
-                      border: `1px solid ${isSelected ? colors.primary : colors.border}`
+                      backgroundColor: index % 2 === 0 ? colors.bgPrimary : colors.bgSecondary,
+                      borderBottom: index !== roles.length - 1 ? `1px solid ${colors.border}` : 'none'
                     }}
                   >
-                    {role.name}
-                  </button>
+                    <div className="col-span-1 flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        className="w-4 h-4"
+                        style={{ accentColor: colors.primary }}
+                      />
+                    </div>
+                    <div className="col-span-11">
+                      <div className="text-sm font-medium" style={{ color: colors.textPrimary }}>
+                        {role.name}
+                      </div>
+                      <div className="text-xs" style={{ color: colors.textMuted }}>
+                        {role.description}
+                      </div>
+                      <div className="text-xs mt-1" style={{ color: colors.textSecondary }}>
+                        {role.permissions?.length || 0} permissions
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>
-            <div className="flex gap-2 pt-4 border-t" style={{ borderColor: colors.border }}>
-              <Button
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4">
+              <button
                 onClick={handleAssignRoles}
-                style={{ backgroundColor: colors.primary }}
-                className="text-white hover:opacity-90 flex-1 flex items-center gap-2 justify-center"
+                className="flex-1 px-4 py-2 text-sm font-medium flex items-center justify-center gap-2"
+                style={{ backgroundColor: colors.primary, color: 'white' }}
                 disabled={savingRoleAssignment}
               >
-                {savingRoleAssignment && <Loader2 size={16} className="animate-spin" />}
+                {savingRoleAssignment && <Loader2 size={14} className="animate-spin" />}
                 {savingRoleAssignment ? 'Saving...' : 'Save Changes'}
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={() => {
                   setShowRoleAssignmentModal(false);
                   setAssigningRolesFor(null);
                   setSelectedRoleIds([]);
                 }}
-                variant="outline"
+                className="px-4 py-2 text-sm font-medium"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  border: `1px solid ${colors.border}`,
+                  color: colors.textPrimary
+                }}
                 disabled={savingRoleAssignment}
               >
                 Cancel
-              </Button>
+              </button>
             </div>
           </div>
         </Modal>
