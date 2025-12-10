@@ -512,10 +512,9 @@ export default function HelpManagement() {
                 <textarea
                   value={sectionForm.description}
                   onChange={(e) => setSectionForm({ ...sectionForm, description: e.target.value })}
-                  className="text-sm"
-                  rows={3}
                   style={{
                     width: '100%',
+                    height: '72px',
                     padding: '8px 12px',
                     backgroundColor: colors.bgSecondary,
                     border: `1px solid ${colors.border}`,
@@ -523,8 +522,12 @@ export default function HelpManagement() {
                     resize: 'vertical',
                     boxSizing: 'border-box',
                     fontFamily: 'inherit',
+                    fontSize: '14px',
                     lineHeight: '1.5',
-                    outline: 'none'
+                    outline: 'none',
+                    display: 'block',
+                    pointerEvents: 'auto',
+                    cursor: 'text'
                   }}
                   onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
                   onBlur={(e) => e.currentTarget.style.borderColor = colors.border}
