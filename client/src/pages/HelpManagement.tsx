@@ -4,6 +4,8 @@ import { colors } from '../config/theme.config';
 import { helpService } from '../services/help.service';
 import type { HelpSection, CreateHelpSectionRequest, CreateHelpTopicRequest } from '../services/help.service';
 import { Plus, Edit2, Trash2, X, ChevronDown, ChevronUp } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export default function HelpManagement() {
   const [sections, setSections] = useState<HelpSection[]>([]);
@@ -13,6 +15,53 @@ export default function HelpManagement() {
   const [editingSection, setEditingSection] = useState<HelpSection | null>(null);
   const [selectedSectionId, setSelectedSectionId] = useState<string>('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+
+  // Add custom styles for Quill editor
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .quill-wrapper .ql-toolbar {
+        background-color: ${colors.bgSecondary};
+        border: 1px solid ${colors.border};
+        border-bottom: none;
+      }
+      .quill-wrapper .ql-container {
+        background-color: ${colors.bgSecondary};
+        border: 1px solid ${colors.border};
+        color: ${colors.textPrimary};
+        font-size: 14px;
+        min-height: 150px;
+      }
+      .quill-wrapper .ql-editor {
+        color: ${colors.textPrimary};
+        min-height: 150px;
+      }
+      .quill-wrapper .ql-editor.ql-blank::before {
+        color: ${colors.textMuted};
+      }
+      .quill-wrapper .ql-stroke {
+        stroke: ${colors.textSecondary};
+      }
+      .quill-wrapper .ql-fill {
+        fill: ${colors.textSecondary};
+      }
+      .quill-wrapper .ql-picker-label {
+        color: ${colors.textSecondary};
+      }
+      .quill-wrapper button:hover .ql-stroke,
+      .quill-wrapper button.ql-active .ql-stroke {
+        stroke: ${colors.primary};
+      }
+      .quill-wrapper button:hover .ql-fill,
+      .quill-wrapper button.ql-active .ql-fill {
+        fill: ${colors.primary};
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   const [sectionForm, setSectionForm] = useState<CreateHelpSectionRequest>({
     title: '',
@@ -138,6 +187,13 @@ export default function HelpManagement() {
     'rocket', 'users', 'shield', 'settings', 'file-text',
     'code', 'alert-circle', 'lock'
   ];
+
+  // Helper function to strip HTML tags for preview
+  const stripHtml = (html: string) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
 
   return (
     <DashboardLayout>
@@ -267,7 +323,7 @@ export default function HelpManagement() {
                             {topic.question}
                           </p>
                           <p className="text-xs mt-1" style={{ color: colors.textMuted }}>
-                            {topic.answer.substring(0, 100)}...
+                            {stripHtml(topic.answer).substring(0, 100)}...
                           </p>
                         </div>
                         <button
@@ -475,17 +531,33 @@ export default function HelpManagement() {
                 <label className="block text-xs font-medium mb-1" style={{ color: colors.textSecondary }}>
                   ANSWER
                 </label>
-                <textarea
-                  value={topicForm.answer}
-                  onChange={(e) => setTopicForm({ ...topicForm, answer: e.target.value })}
-                  className="w-full px-3 py-2 text-sm"
-                  rows={6}
-                  style={{
-                    backgroundColor: colors.bgSecondary,
-                    border: `1px solid ${colors.border}`,
-                    color: colors.textPrimary
-                  }}
-                />
+                <div className="quill-wrapper" style={{
+                  '--quill-bg': colors.bgSecondary,
+                  '--quill-border': colors.border,
+                  '--quill-text': colors.textPrimary,
+                } as React.CSSProperties}>
+                  <ReactQuill
+                    value={topicForm.answer}
+                    onChange={(value) => setTopicForm({ ...topicForm, answer: value })}
+                    modules={{
+                      toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link'],
+                        ['clean']
+                      ]
+                    }}
+                    formats={[
+                      'bold', 'italic', 'underline', 'strike',
+                      'list', 'bullet',
+                      'link'
+                    ]}
+                    style={{
+                      backgroundColor: colors.bgSecondary,
+                      color: colors.textPrimary
+                    }}
+                  />
+                </div>
               </div>
 
               <div>

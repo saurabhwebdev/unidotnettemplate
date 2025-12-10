@@ -37,6 +37,54 @@ export default function Help() {
     loadSections();
   }, []);
 
+  // Add custom styles for rendered HTML content
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .help-answer-content p {
+        margin-bottom: 0.5rem;
+      }
+      .help-answer-content p:last-child {
+        margin-bottom: 0;
+      }
+      .help-answer-content strong {
+        font-weight: 600;
+        color: ${colors.textPrimary};
+      }
+      .help-answer-content em {
+        font-style: italic;
+      }
+      .help-answer-content u {
+        text-decoration: underline;
+      }
+      .help-answer-content a {
+        color: ${colors.primary};
+        text-decoration: underline;
+      }
+      .help-answer-content a:hover {
+        opacity: 0.8;
+      }
+      .help-answer-content ul,
+      .help-answer-content ol {
+        margin-left: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .help-answer-content ul {
+        list-style-type: disc;
+      }
+      .help-answer-content ol {
+        list-style-type: decimal;
+      }
+      .help-answer-content li {
+        margin-bottom: 0.25rem;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const loadSections = async () => {
     try {
       setLoading(true);
@@ -228,15 +276,17 @@ export default function Help() {
                       {/* Answer */}
                       {isExpanded && (
                         <div
-                          className="px-4 py-3 ml-6"
+                          className="px-4 py-3 ml-6 help-answer-content"
                           style={{
                             backgroundColor: colors.bgPrimary,
                             borderTop: `1px solid ${colors.border}`
                           }}
                         >
-                          <p className="text-sm leading-relaxed" style={{ color: colors.textSecondary }}>
-                            {topic.answer}
-                          </p>
+                          <div
+                            className="text-sm leading-relaxed"
+                            style={{ color: colors.textSecondary }}
+                            dangerouslySetInnerHTML={{ __html: topic.answer }}
+                          />
                         </div>
                       )}
                     </div>
