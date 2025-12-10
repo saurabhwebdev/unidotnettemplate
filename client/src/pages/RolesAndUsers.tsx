@@ -568,8 +568,16 @@ export function RolesAndUsers() {
             </div>
             <button
               onClick={() => openRoleModal()}
-              className="px-3 py-1.5 text-xs font-medium flex items-center gap-2"
+              className="px-3 py-1.5 text-xs font-medium flex items-center gap-2 transition-all duration-200"
               style={{ backgroundColor: colors.primary, color: 'white' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '0.85';
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
               <Plus size={14} />
               Create Role
@@ -706,8 +714,16 @@ export function RolesAndUsers() {
               </div>
               <button
                 onClick={() => openUserModal()}
-                className="px-3 py-1.5 text-xs font-medium flex items-center gap-2"
+                className="px-3 py-1.5 text-xs font-medium flex items-center gap-2 transition-all duration-200"
                 style={{ backgroundColor: colors.primary, color: 'white' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.85';
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
               >
                 <UserPlus size={14} />
                 Create User
