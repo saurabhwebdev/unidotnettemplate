@@ -517,7 +517,10 @@ export default function HelpManagement() {
                   style={{
                     backgroundColor: colors.bgSecondary,
                     border: `1px solid ${colors.border}`,
-                    color: colors.textPrimary
+                    color: colors.textPrimary,
+                    resize: 'vertical',
+                    display: 'block',
+                    minHeight: '60px'
                   }}
                 />
               </div>
