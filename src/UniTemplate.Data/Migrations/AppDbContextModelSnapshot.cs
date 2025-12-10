@@ -95,6 +95,89 @@ namespace UniTemplate.Data.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("UniTemplate.Core.Entities.HelpSection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Order");
+
+                    b.ToTable("HelpSections");
+                });
+
+            modelBuilder.Entity("UniTemplate.Core.Entities.HelpTopic", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Answer")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid>("HelpSectionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HelpSectionId", "Order");
+
+                    b.ToTable("HelpTopics");
+                });
+
             modelBuilder.Entity("UniTemplate.Core.Entities.PasswordResetToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -357,6 +440,17 @@ namespace UniTemplate.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("UniTemplate.Core.Entities.HelpTopic", b =>
+                {
+                    b.HasOne("UniTemplate.Core.Entities.HelpSection", "HelpSection")
+                        .WithMany("Topics")
+                        .HasForeignKey("HelpSectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("HelpSection");
+                });
+
             modelBuilder.Entity("UniTemplate.Core.Entities.PasswordResetToken", b =>
                 {
                     b.HasOne("UniTemplate.Core.Entities.User", "User")
@@ -406,6 +500,11 @@ namespace UniTemplate.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UniTemplate.Core.Entities.HelpSection", b =>
+                {
+                    b.Navigation("Topics");
                 });
 
             modelBuilder.Entity("UniTemplate.Core.Entities.Role", b =>

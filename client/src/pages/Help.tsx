@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { colors } from '../config/theme.config';
-import { getEnabledHelpSections } from '../config/helpContent';
+import { helpService, HelpSection } from '../services/help.service';
 import {
   Rocket,
   Users,
@@ -27,9 +27,26 @@ const iconMap: Record<string, any> = {
 };
 
 export default function Help() {
-  const sections = getEnabledHelpSections();
+  const [sections, setSections] = useState<HelpSection[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    loadSections();
+  }, []);
+
+  const loadSections = async () => {
+    try {
+      setLoading(true);
+      const data = await helpService.getEnabledSections();
+      setSections(data);
+    } catch (error) {
+      console.error('Failed to load help sections:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleTopic = (sectionId: string, topicIndex: number) => {
     const key = `${sectionId}-${topicIndex}`;
@@ -132,9 +149,19 @@ export default function Help() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <p className="text-sm" style={{ color: colors.textMuted }}>
+            Loading help content...
+          </p>
+        </div>
+      )}
+
       {/* Help Sections */}
-      <div className="space-y-6">
-        {filteredSections.map((section) => {
+      {!loading && (
+        <div className="space-y-6">
+          {filteredSections.map((section) => {
           const Icon = iconMap[section.icon] || FileText;
 
           return (
@@ -219,14 +246,15 @@ export default function Help() {
           );
         })}
 
-        {filteredSections.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-sm" style={{ color: colors.textMuted }}>
-              No help topics found matching "{searchQuery}"
-            </p>
-          </div>
-        )}
-      </div>
+          {filteredSections.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-sm" style={{ color: colors.textMuted }}>
+                No help topics found matching "{searchQuery}"
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Footer */}
       <div

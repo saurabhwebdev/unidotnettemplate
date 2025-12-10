@@ -201,6 +201,27 @@ export function Settings() {
           >
             Version Info
           </button>
+          <button
+            onClick={() => navigate('/help-management')}
+            className="px-3 py-1.5 text-xs font-medium transition-all duration-200"
+            style={{
+              backgroundColor: colors.bgSecondary,
+              border: `1px solid ${colors.border}`,
+              color: colors.textPrimary
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = colors.primary;
+              e.currentTarget.style.color = 'white';
+              e.currentTarget.style.borderColor = colors.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.bgSecondary;
+              e.currentTarget.style.color = colors.textPrimary;
+              e.currentTarget.style.borderColor = colors.border;
+            }}
+          >
+            Help Management
+          </button>
         </div>
       </div>
 

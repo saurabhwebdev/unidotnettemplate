@@ -31,7 +31,8 @@
       "Bash(gh repo create:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(del \"C:\\Webdev\\dotnet_template\\client\\src\\config\\helpContent.ts\")"
     ],
     "deny": [],
     "ask": []
