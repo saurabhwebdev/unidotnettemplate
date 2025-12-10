@@ -9,6 +9,7 @@ import { Settings } from './pages/Settings';
 import { Profile } from './pages/Profile';
 import AuditLogs from './pages/AuditLogs';
 import Version from './pages/Version';
+import Help from './pages/Help';
 import { authService } from './services/auth.service';
 import { ToastProvider } from './components/ui/toast';
 
@@ -70,6 +71,14 @@ function App() {
           element={
             <PrivateRoute>
               <Version />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/help"
+          element={
+            <PrivateRoute>
+              <Help />
             </PrivateRoute>
           }
         />

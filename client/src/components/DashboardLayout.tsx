@@ -8,7 +8,8 @@ import {
   Users,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  HelpCircle
 } from 'lucide-react';
 import Avatar from 'boring-avatars';
 import { authService } from '../services/auth.service';
@@ -32,6 +33,7 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Roles & Users', href: '/users', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Help', href: '/help', icon: HelpCircle },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
