@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { colors } from '../config/theme.config';
-import { helpService, HelpSection } from '../services/help.service';
+import { helpService } from '../services/help.service';
+import type { HelpSection } from '../services/help.service';
 import {
   Rocket,
   Users,

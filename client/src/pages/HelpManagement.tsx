@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { colors } from '../config/theme.config';
-import { helpService, HelpSection, CreateHelpSectionRequest, CreateHelpTopicRequest } from '../services/help.service';
+import { helpService } from '../services/help.service';
+import type { HelpSection, CreateHelpSectionRequest, CreateHelpTopicRequest } from '../services/help.service';
 import { Plus, Edit2, Trash2, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function HelpManagement() {
