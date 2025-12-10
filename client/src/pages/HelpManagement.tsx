@@ -512,16 +512,22 @@ export default function HelpManagement() {
                 <textarea
                   value={sectionForm.description}
                   onChange={(e) => setSectionForm({ ...sectionForm, description: e.target.value })}
-                  className="w-full px-3 py-2 text-sm"
+                  className="text-sm"
                   rows={3}
                   style={{
+                    width: '100%',
+                    padding: '8px 12px',
                     backgroundColor: colors.bgSecondary,
                     border: `1px solid ${colors.border}`,
                     color: colors.textPrimary,
                     resize: 'vertical',
-                    display: 'block',
-                    minHeight: '60px'
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit',
+                    lineHeight: '1.5',
+                    outline: 'none'
                   }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                  onBlur={(e) => e.currentTarget.style.borderColor = colors.border}
                 />
               </div>
 
