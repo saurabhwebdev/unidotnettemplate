@@ -1,11 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Modal } from '../components/ui/modal';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
-import { SkeletonTable } from '../components/ui/skeleton';
 import { Pagination } from '../components/ui/pagination';
 import { useToast } from '../components/ui/toast';
 import { colors } from '../config/theme.config';
@@ -507,347 +504,348 @@ export function RolesAndUsers() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 animate-fade-in">
+      <div>
         {/* Header with Tabs */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex gap-2 border-b w-full sm:w-auto" style={{ borderColor: colors.border }}>
+        <div className="flex items-center gap-0 mb-6" style={{ borderBottom: `1px solid ${colors.border}` }}>
+        <button
+          onClick={() => setActiveTab('roles')}
+          className="px-4 py-2 text-xs font-medium uppercase tracking-wider transition-all duration-200"
+          style={{
+            color: activeTab === 'roles' ? colors.textPrimary : colors.textMuted,
+            borderBottom: activeTab === 'roles' ? `2px solid ${colors.primary}` : '2px solid transparent',
+            backgroundColor: activeTab === 'roles' ? colors.bgSecondary : 'transparent'
+          }}
+        >
+          Roles
+        </button>
+        <button
+          onClick={() => setActiveTab('users')}
+          className="px-4 py-2 text-xs font-medium uppercase tracking-wider transition-all duration-200"
+          style={{
+            color: activeTab === 'users' ? colors.textPrimary : colors.textMuted,
+            borderBottom: activeTab === 'users' ? `2px solid ${colors.primary}` : '2px solid transparent',
+            backgroundColor: activeTab === 'users' ? colors.bgSecondary : 'transparent'
+          }}
+        >
+          Users
+        </button>
+        <button
+          onClick={() => setActiveTab('routes')}
+          className="px-4 py-2 text-xs font-medium uppercase tracking-wider transition-all duration-200"
+          style={{
+            color: activeTab === 'routes' ? colors.textPrimary : colors.textMuted,
+            borderBottom: activeTab === 'routes' ? `2px solid ${colors.primary}` : '2px solid transparent',
+            backgroundColor: activeTab === 'routes' ? colors.bgSecondary : 'transparent'
+          }}
+        >
+          API Routes
+        </button>
+      </div>
+
+      {/* Roles Tab */}
+      {activeTab === 'roles' && (
+        <div>
+          {/* Toolbar */}
+          <div
+            className="p-3 mb-4 flex items-center justify-between"
+            style={{ backgroundColor: colors.bgSecondary, border: `1px solid ${colors.border}` }}
+          >
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search roles..."
+                className="px-3 py-1.5 text-sm w-64 focus:outline-none"
+                style={{
+                  backgroundColor: colors.bgPrimary,
+                  border: `1px solid ${colors.border}`,
+                  color: colors.textPrimary
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                onBlur={(e) => e.currentTarget.style.borderColor = colors.border}
+              />
+            </div>
             <button
-              onClick={() => setActiveTab('roles')}
-              className="flex items-center gap-2 px-4 py-3 font-medium transition-all group"
-              style={{
-                color: activeTab === 'roles' ? colors.primary : colors.textMuted,
-                borderBottom: activeTab === 'roles' ? `2px solid ${colors.primary}` : '2px solid transparent'
-              }}
+              onClick={() => openRoleModal()}
+              className="px-3 py-1.5 text-xs font-medium flex items-center gap-2"
+              style={{ backgroundColor: colors.primary, color: 'white' }}
             >
-              <Shield size={18} className="group-hover:scale-110 transition-transform" />
-              Roles
-            </button>
-            <button
-              onClick={() => setActiveTab('users')}
-              className="flex items-center gap-2 px-4 py-3 font-medium transition-all group"
-              style={{
-                color: activeTab === 'users' ? colors.primary : colors.textMuted,
-                borderBottom: activeTab === 'users' ? `2px solid ${colors.primary}` : '2px solid transparent'
-              }}
-            >
-              <UsersIcon size={18} className="group-hover:scale-110 transition-transform" />
-              Users
-            </button>
-            <button
-              onClick={() => setActiveTab('routes')}
-              className="flex items-center gap-2 px-4 py-3 font-medium transition-all group"
-              style={{
-                color: activeTab === 'routes' ? colors.primary : colors.textMuted,
-                borderBottom: activeTab === 'routes' ? `2px solid ${colors.primary}` : '2px solid transparent'
-              }}
-            >
-              <RouteIcon size={18} className="group-hover:scale-110 transition-transform" />
-              Routes
+              <Plus size={14} />
+              Create Role
             </button>
           </div>
-        </div>
 
-        {/* Roles Tab */}
-        {activeTab === 'roles' && (
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2" style={{ color: colors.textPrimary }}>
-                    <Shield size={24} />
-                    Role Management
-                  </CardTitle>
-                  <CardDescription style={{ color: colors.textMuted }}>
-                    Manage roles and their permissions
-                  </CardDescription>
-                </div>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search
-                      size={18}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                      style={{ color: colors.textMuted }}
-                    />
-                    <Input
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search roles..."
-                      className="pl-10 w-64"
-                    />
-                  </div>
-                  <Button
-                    onClick={() => openRoleModal()}
-                    style={{ backgroundColor: colors.primary }}
-                    className="text-white hover:opacity-90 hover:scale-105 transition-all flex items-center gap-2"
-                  >
-                    <Plus size={18} />
-                    Create Role
-                  </Button>
-                </div>
+          {/* Table */}
+          <div style={{ border: `1px solid ${colors.border}` }}>
+            {/* Table Header */}
+            <div
+              className="grid grid-cols-12 px-3 py-2"
+              style={{
+                backgroundColor: colors.bgSecondary,
+                borderBottom: `1px solid ${colors.border}`
+              }}
+            >
+              <div className="col-span-3 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                Role Name
               </div>
-            </CardHeader>
-            <CardContent>
-              {loadingRoles ? (
-                <SkeletonTable />
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Role Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Permissions</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedRoles.map((role) => (
-                    <TableRow key={role.id} className="hover:bg-opacity-50">
-                      <TableCell>
-                        <div className="flex items-center gap-2 font-medium">
-                          <Shield size={16} style={{ color: colors.primary }} />
-                          {role.name}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span style={{ color: colors.textMuted }}>{role.description}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
-                          {role.permissions?.length || 0} permissions
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {role.isSystemRole && (
-                          <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
-                            System
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            onClick={() => openRoleModal(role)}
-                            variant="outline"
-                            size="sm"
-                            className="hover:scale-105 transition-transform flex items-center gap-1"
-                          >
-                            <Edit2 size={14} />
-                            Edit
-                          </Button>
-                          {!role.isSystemRole && (
-                            <Button
-                              onClick={() => handleDeleteRole(role.id)}
-                              variant="outline"
-                              size="sm"
-                              className="text-red-600 hover:bg-red-50 hover:scale-105 transition-transform flex items-center gap-1"
-                              disabled={deletingRoleId === role.id}
-                            >
-                              {deletingRoleId === role.id ? (
-                                <Loader2 size={14} className="animate-spin" />
-                              ) : (
-                                <Trash2 size={14} />
-                              )}
-                              {deletingRoleId === role.id ? 'Deleting...' : 'Delete'}
-                            </Button>
+              <div className="col-span-4 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                Description
+              </div>
+              <div className="col-span-2 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                Permissions
+              </div>
+              <div className="col-span-1 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                Type
+              </div>
+              <div className="col-span-2 text-xs font-semibold uppercase tracking-wider text-right" style={{ color: colors.textPrimary }}>
+                Actions
+              </div>
+            </div>
+
+            {/* Table Body */}
+            {loadingRoles ? (
+              <div className="p-8 text-center text-sm" style={{ color: colors.textMuted }}>
+                Loading...
+              </div>
+            ) : paginatedRoles.length === 0 ? (
+              <div className="p-8 text-center text-sm" style={{ color: colors.textMuted }}>
+                No roles found
+              </div>
+            ) : (
+              <div>
+                {paginatedRoles.map((role, index) => (
+                  <div
+                    key={role.id}
+                    className="grid grid-cols-12 px-3 py-2.5"
+                    style={{
+                      backgroundColor: index % 2 === 0 ? colors.bgPrimary : colors.bgSecondary,
+                      borderBottom: `1px solid ${colors.border}`
+                    }}
+                  >
+                    <div className="col-span-3 text-xs font-medium" style={{ color: colors.textPrimary }}>
+                      {role.name}
+                    </div>
+                    <div className="col-span-4 text-xs" style={{ color: colors.textMuted }}>
+                      {role.description}
+                    </div>
+                    <div className="col-span-2 text-xs" style={{ color: colors.textSecondary }}>
+                      {role.permissions?.length || 0} permissions
+                    </div>
+                    <div className="col-span-1 text-xs" style={{ color: colors.textSecondary }}>
+                      {role.isSystemRole ? 'System' : '-'}
+                    </div>
+                    <div className="col-span-2 flex gap-2 justify-end">
+                      <button
+                        onClick={() => openRoleModal(role)}
+                        className="px-2 py-0.5 text-xs hover:underline flex items-center gap-1"
+                        style={{ color: colors.primary }}
+                      >
+                        <Edit2 size={12} />
+                        Edit
+                      </button>
+                      {!role.isSystemRole && (
+                        <button
+                          onClick={() => handleDeleteRole(role.id)}
+                          className="px-2 py-0.5 text-xs hover:underline flex items-center gap-1"
+                          style={{ color: colors.error }}
+                          disabled={deletingRoleId === role.id}
+                        >
+                          {deletingRoleId === role.id ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : (
+                            <>
+                              <Trash2 size={12} />
+                              Delete
+                            </>
                           )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  </TableBody>
-                </Table>
-              )}
-              <Pagination
-                currentPage={rolesPage}
-                totalPages={Math.ceil(filteredRoles.length / rolesPageSize)}
-                totalCount={filteredRoles.length}
-                pageSize={rolesPageSize}
-                onPageChange={setRolesPage}
-                onPageSizeChange={(size) => { setRolesPageSize(size); setRolesPage(1); }}
-              />
-            </CardContent>
-          </Card>
-        )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={rolesPage}
+              totalPages={Math.ceil(filteredRoles.length / rolesPageSize)}
+              totalCount={filteredRoles.length}
+              pageSize={rolesPageSize}
+              onPageChange={setRolesPage}
+              onPageSizeChange={(size) => { setRolesPageSize(size); setRolesPage(1); }}
+            />
+          </div>
+        </div>
+      )}
 
         {/* Users Tab */}
         {activeTab === 'users' && (
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2" style={{ color: colors.textPrimary }}>
-                    <UsersIcon size={24} />
-                    User Management
-                  </CardTitle>
-                  <CardDescription style={{ color: colors.textMuted }}>
-                    Manage users and their role assignments
-                  </CardDescription>
+          <div>
+            {/* Toolbar */}
+            <div
+              className="p-3 mb-4 flex items-center justify-between"
+              style={{ backgroundColor: colors.bgSecondary, border: `1px solid ${colors.border}` }}
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search users..."
+                  className="px-3 py-1.5 text-sm w-64 focus:outline-none"
+                  style={{
+                    backgroundColor: colors.bgPrimary,
+                    border: `1px solid ${colors.border}`,
+                    color: colors.textPrimary
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                  onBlur={(e) => e.currentTarget.style.borderColor = colors.border}
+                />
+              </div>
+              <button
+                onClick={() => openUserModal()}
+                className="px-3 py-1.5 text-xs font-medium flex items-center gap-2"
+                style={{ backgroundColor: colors.primary, color: 'white' }}
+              >
+                <UserPlus size={14} />
+                Create User
+              </button>
+            </div>
+
+            {/* Table */}
+            <div style={{ border: `1px solid ${colors.border}` }}>
+              {/* Table Header */}
+              <div
+                className="grid grid-cols-12 px-3 py-2"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  borderBottom: `1px solid ${colors.border}`
+                }}
+              >
+                <div className="col-span-3 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  User
                 </div>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search
-                      size={18}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                      style={{ color: colors.textMuted }}
-                    />
-                    <Input
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search users..."
-                      className="pl-10 w-64"
-                    />
-                  </div>
-                  <Button
-                    onClick={() => openUserModal()}
-                    style={{ backgroundColor: colors.primary }}
-                    className="text-white hover:opacity-90 hover:scale-105 transition-all flex items-center gap-2"
-                  >
-                    <UserPlus size={18} />
-                    Create User
-                  </Button>
+                <div className="col-span-2 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Department
+                </div>
+                <div className="col-span-2 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Roles
+                </div>
+                <div className="col-span-1 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Status
+                </div>
+                <div className="col-span-4 text-xs font-semibold uppercase tracking-wider text-right" style={{ color: colors.textPrimary }}>
+                  Actions
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
+
+              {/* Table Body */}
               {loadingUsers ? (
-                <SkeletonTable />
+                <div className="p-8 text-center text-sm" style={{ color: colors.textMuted }}>
+                  Loading...
+                </div>
+              ) : paginatedUsers.length === 0 ? (
+                <div className="p-8 text-center text-sm" style={{ color: colors.textMuted }}>
+                  No users found
+                </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead>Roles</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedUsers.map((user) => (
-                    <TableRow key={user.id} className="hover:bg-opacity-50">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0"
-                            style={{ backgroundColor: colors.primary }}
-                          >
-                            {user.firstName[0]}{user.lastName[0]}
+                <div>
+                  {paginatedUsers.map((user, index) => (
+                    <div
+                      key={user.id}
+                      className="grid grid-cols-12 px-3 py-2.5"
+                      style={{
+                        backgroundColor: index % 2 === 0 ? colors.bgPrimary : colors.bgSecondary,
+                        borderBottom: `1px solid ${colors.border}`
+                      }}
+                    >
+                      <div className="col-span-3">
+                        <div className="text-xs font-medium" style={{ color: colors.textPrimary }}>
+                          {user.firstName} {user.lastName}
+                        </div>
+                        <div className="text-xs" style={{ color: colors.textMuted }}>
+                          {user.designation || '-'}
+                        </div>
+                        <div className="text-xs" style={{ color: colors.textMuted }}>
+                          {user.email}
+                        </div>
+                      </div>
+                      <div className="col-span-2">
+                        <div className="text-xs" style={{ color: colors.textPrimary }}>
+                          {user.department || '-'}
+                        </div>
+                        {user.officeLocation && (
+                          <div className="text-xs" style={{ color: colors.textMuted }}>
+                            {user.officeLocation}
                           </div>
-                          <div>
-                            <div className="font-medium" style={{ color: colors.textPrimary }}>
-                              {user.firstName} {user.lastName}
-                            </div>
-                            <div className="text-xs" style={{ color: colors.textMuted }}>
-                              {user.designation || 'No designation'}
-                            </div>
-                            <div className="flex items-center gap-1 text-xs" style={{ color: colors.textMuted }}>
-                              <Mail size={12} />
-                              {user.email}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          {user.department ? (
-                            <div className="flex items-center gap-1.5">
-                              <Building2 size={14} style={{ color: colors.textMuted }} />
-                              <span style={{ color: colors.textPrimary }}>{user.department}</span>
-                            </div>
-                          ) : (
-                            <span className="text-xs" style={{ color: colors.textMuted }}>-</span>
-                          )}
-                          {user.officeLocation && (
-                            <div className="flex items-center gap-1.5 text-xs mt-0.5" style={{ color: colors.textMuted }}>
-                              <MapPin size={12} />
-                              {user.officeLocation}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {user.roles.map((role) => (
-                            <span
-                              key={role.id}
-                              className="text-xs px-2 py-1 rounded"
-                              style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
-                            >
-                              {role.name}
-                            </span>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {user.isActive ? (
-                          <span className="flex items-center gap-1 text-xs text-green-600">
-                            <CheckCircle2 size={14} />
-                            Active
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-xs text-red-600">
-                            <XCircle size={14} />
-                            Inactive
-                          </span>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            onClick={() => openRoleAssignmentModal(user)}
-                            variant="outline"
-                            size="sm"
-                            className="hover:scale-105 transition-transform flex items-center gap-1"
-                          >
-                            <ShieldCheck size={14} />
-                            Roles
-                          </Button>
-                          <Button
-                            onClick={() => openUserModal(user)}
-                            variant="outline"
-                            size="sm"
-                            className="hover:scale-105 transition-transform flex items-center gap-1"
-                          >
-                            <Edit2 size={14} />
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() => handleSendUserDetails(user)}
-                            variant="outline"
-                            size="sm"
-                            className="hover:scale-105 transition-transform flex items-center gap-1"
-                            title="Send user details via email"
-                            disabled={sendingEmailFor === user.id}
-                          >
-                            {sendingEmailFor === user.id ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Mail size={14} />
-                            )}
-                            {sendingEmailFor === user.id ? 'Sending...' : 'Email'}
-                          </Button>
-                          <Button
-                            onClick={() => handleDeleteUser(user.id)}
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:bg-red-50 hover:scale-105 transition-transform flex items-center gap-1"
-                            disabled={deletingUserId === user.id}
-                          >
-                            {deletingUserId === user.id ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={14} />
-                            )}
-                            {deletingUserId === user.id ? 'Deleting...' : 'Delete'}
-                          </Button>
+                      </div>
+                      <div className="col-span-2">
+                        <div className="text-xs" style={{ color: colors.textSecondary }}>
+                          {user.roles.map(r => r.name).join(', ') || '-'}
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                      <div className="col-span-1">
+                        <div className="text-xs" style={{ color: user.isActive ? colors.primary : colors.error }}>
+                          {user.isActive ? 'Active' : 'Inactive'}
+                        </div>
+                      </div>
+                      <div className="col-span-4 flex gap-2 justify-end">
+                        <button
+                          onClick={() => openRoleAssignmentModal(user)}
+                          className="px-2 py-0.5 text-xs hover:underline flex items-center gap-1"
+                          style={{ color: colors.primary }}
+                        >
+                          <ShieldCheck size={12} />
+                          Roles
+                        </button>
+                        <button
+                          onClick={() => openUserModal(user)}
+                          className="px-2 py-0.5 text-xs hover:underline flex items-center gap-1"
+                          style={{ color: colors.primary }}
+                        >
+                          <Edit2 size={12} />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleSendUserDetails(user)}
+                          className="px-2 py-0.5 text-xs hover:underline flex items-center gap-1"
+                          style={{ color: colors.primary }}
+                          disabled={sendingEmailFor === user.id}
+                        >
+                          {sendingEmailFor === user.id ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : (
+                            <>
+                              <Mail size={12} />
+                              Email
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="px-2 py-0.5 text-xs hover:underline flex items-center gap-1"
+                          style={{ color: colors.error }}
+                          disabled={deletingUserId === user.id}
+                        >
+                          {deletingUserId === user.id ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : (
+                            <>
+                              <Trash2 size={12} />
+                              Delete
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   ))}
-                  </TableBody>
-                </Table>
+                </div>
               )}
+
+              {/* Pagination */}
               <Pagination
                 currentPage={usersPage}
                 totalPages={Math.ceil(filteredUsers.length / usersPageSize)}
@@ -856,69 +854,96 @@ export function RolesAndUsers() {
                 onPageChange={setUsersPage}
                 onPageSizeChange={(size) => { setUsersPageSize(size); setUsersPage(1); }}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Routes Tab */}
         {activeTab === 'routes' && (
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2" style={{ color: colors.textPrimary }}>
-                    <RouteIcon size={24} />
-                    API Routes
-                  </CardTitle>
-                  <CardDescription style={{ color: colors.textMuted }}>
-                    All available API routes in the system
-                  </CardDescription>
+          <div>
+            {/* Toolbar */}
+            <div
+              className="p-3 mb-4 flex items-center justify-between"
+              style={{ backgroundColor: colors.bgSecondary, border: `1px solid ${colors.border}` }}
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search routes..."
+                  className="px-3 py-1.5 text-sm w-64 focus:outline-none"
+                  style={{
+                    backgroundColor: colors.bgPrimary,
+                    border: `1px solid ${colors.border}`,
+                    color: colors.textPrimary
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                  onBlur={(e) => e.currentTarget.style.borderColor = colors.border}
+                />
+              </div>
+              <button
+                onClick={loadRoutes}
+                className="px-3 py-1.5 text-xs font-medium flex items-center gap-2"
+                style={{
+                  backgroundColor: colors.bgPrimary,
+                  border: `1px solid ${colors.border}`,
+                  color: colors.textPrimary
+                }}
+                disabled={loadingRoutes}
+              >
+                <RefreshCw size={14} className={loadingRoutes ? 'animate-spin' : ''} />
+                Refresh
+              </button>
+            </div>
+
+            {/* Table */}
+            <div style={{ border: `1px solid ${colors.border}` }}>
+              {/* Table Header */}
+              <div
+                className="grid grid-cols-12 px-3 py-2"
+                style={{
+                  backgroundColor: colors.bgSecondary,
+                  borderBottom: `1px solid ${colors.border}`
+                }}
+              >
+                <div className="col-span-1 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Method
                 </div>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search
-                      size={18}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                      style={{ color: colors.textMuted }}
-                    />
-                    <Input
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search routes..."
-                      className="pl-10 w-64"
-                    />
-                  </div>
-                  <Button
-                    onClick={loadRoutes}
-                    variant="outline"
-                    className="hover:scale-105 transition-all flex items-center gap-2"
-                    disabled={loadingRoutes}
-                  >
-                    <RefreshCw size={18} className={loadingRoutes ? 'animate-spin' : ''} />
-                    Refresh
-                  </Button>
+                <div className="col-span-4 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Route
+                </div>
+                <div className="col-span-5 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Description
+                </div>
+                <div className="col-span-2 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                  Controller
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
+
+              {/* Table Body */}
               {loadingRoutes ? (
-                <SkeletonTable />
+                <div className="p-8 text-center text-sm" style={{ color: colors.textMuted }}>
+                  Loading...
+                </div>
+              ) : paginatedRoutes.length === 0 ? (
+                <div className="p-8 text-center text-sm" style={{ color: colors.textMuted }}>
+                  No routes found
+                </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Method</TableHead>
-                      <TableHead>Route</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Controller</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedRoutes.map((route, index) => (
-                    <TableRow key={index} className="hover:bg-opacity-50">
-                      <TableCell>
+                <div>
+                  {paginatedRoutes.map((route, index) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-12 px-3 py-2.5"
+                      style={{
+                        backgroundColor: index % 2 === 0 ? colors.bgPrimary : colors.bgSecondary,
+                        borderBottom: `1px solid ${colors.border}`
+                      }}
+                    >
+                      <div className="col-span-1">
                         <span
-                          className="text-xs px-2 py-1 rounded font-semibold"
+                          className="text-xs px-1.5 py-0.5 font-semibold"
                           style={{
                             backgroundColor: route.method === 'GET' ? '#10b981' :
                                            route.method === 'POST' ? '#3b82f6' :
@@ -928,25 +953,24 @@ export function RolesAndUsers() {
                         >
                           {route.method}
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-sm font-mono" style={{ color: colors.textPrimary }}>
+                      </div>
+                      <div className="col-span-4">
+                        <code className="text-xs font-mono" style={{ color: colors.textPrimary }}>
                           {route.route}
                         </code>
-                      </TableCell>
-                      <TableCell>
-                        <span style={{ color: colors.textMuted }}>{route.description}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
-                          {route.controller}
-                        </span>
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                      <div className="col-span-5 text-xs" style={{ color: colors.textMuted }}>
+                        {route.description}
+                      </div>
+                      <div className="col-span-2 text-xs" style={{ color: colors.textSecondary }}>
+                        {route.controller}
+                      </div>
+                    </div>
                   ))}
-                  </TableBody>
-                </Table>
+                </div>
               )}
+
+              {/* Pagination */}
               <Pagination
                 currentPage={routesPage}
                 totalPages={Math.ceil(filteredRoutes.length / routesPageSize)}
@@ -955,8 +979,8 @@ export function RolesAndUsers() {
                 onPageChange={setRoutesPage}
                 onPageSizeChange={(size) => { setRoutesPageSize(size); setRoutesPage(1); }}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Role Modal */}
@@ -1171,7 +1195,7 @@ export function RolesAndUsers() {
             setUserFormData(getDefaultUserFormData());
           }}
           title={editingUser ? 'Edit User' : 'Create New User'}
-          size="lg"
+          size="xl"
         >
           <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-2">
             {/* Basic Information Section */}
@@ -1317,12 +1341,14 @@ export function RolesAndUsers() {
                     <select
                       value={userFormData.reportsToId}
                       onChange={(e) => setUserFormData({ ...userFormData, reportsToId: e.target.value })}
-                      className="w-full px-3 py-2 rounded-md text-sm"
+                      className="w-full px-3 py-2 text-sm focus:outline-none"
                       style={{
                         backgroundColor: colors.bgSecondary,
                         border: `1px solid ${colors.border}`,
                         color: colors.textPrimary
                       }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                      onBlur={(e) => e.currentTarget.style.borderColor = colors.border}
                     >
                       <option value="">Select Manager</option>
                       {users.filter(u => u.id !== editingUser?.id).map(u => (

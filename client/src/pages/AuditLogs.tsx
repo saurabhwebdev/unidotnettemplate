@@ -69,20 +69,14 @@ export default function AuditLogs() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
-  };
-
-  const getActionBadgeColor = (action: string) => {
-    const actionLower = action.toLowerCase();
-    if (actionLower.includes('login')) return 'bg-blue-500/20 text-blue-400';
-    if (actionLower.includes('logout')) return 'bg-gray-500/20 text-gray-400';
-    if (actionLower.includes('register')) return 'bg-green-500/20 text-green-400';
-    if (actionLower.includes('create')) return 'bg-emerald-500/20 text-emerald-400';
-    if (actionLower.includes('update')) return 'bg-yellow-500/20 text-yellow-400';
-    if (actionLower.includes('delete')) return 'bg-red-500/20 text-red-400';
-    if (actionLower.includes('emailsent')) return 'bg-cyan-500/20 text-cyan-400';
-    if (actionLower.includes('emailfailed')) return 'bg-orange-500/20 text-orange-400';
-    return 'bg-purple-500/20 text-purple-400';
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
   };
 
   const viewLogDetails = (log: AuditLog) => {
@@ -92,212 +86,172 @@ export default function AuditLogs() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Filters */}
-        <div
-          className="rounded-xl p-4"
-          style={{ backgroundColor: colors.bgPrimary, border: `1px solid ${colors.border}` }}
+      {/* Filters Bar */}
+      <div
+        className="p-3 mb-4 flex items-center gap-2"
+        style={{ backgroundColor: colors.bgSecondary, border: `1px solid ${colors.border}` }}
+      >
+        <input
+          type="text"
+          placeholder="Search..."
+          value={filter.search}
+          onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+          onKeyPress={handleKeyPress}
+          className="flex-1 px-3 py-1.5 text-sm focus:outline-none"
+          style={{
+            backgroundColor: colors.bgPrimary,
+            color: colors.textPrimary,
+            border: `1px solid ${colors.border}`,
+          }}
+        />
+
+        <div className="w-[130px]">
+          <Select
+            value={filter.action}
+            onChange={(value) => setFilter({ ...filter, action: value, page: 1 })}
+            placeholder="All Actions"
+            options={actions.map((action) => ({ value: action, label: action }))}
+          />
+        </div>
+
+        <div className="w-[140px]">
+          <Select
+            value={filter.entityType}
+            onChange={(value) => setFilter({ ...filter, entityType: value, page: 1 })}
+            placeholder="All Types"
+            options={entityTypes.map((type) => ({ value: type, label: type }))}
+          />
+        </div>
+
+        <div className="w-[110px]">
+          <Select
+            value={filter.isSuccess === undefined ? '' : filter.isSuccess.toString()}
+            onChange={(value) =>
+              setFilter({
+                ...filter,
+                isSuccess: value === '' ? undefined : value === 'true',
+                page: 1,
+              })
+            }
+            placeholder="All Status"
+            options={[
+              { value: 'true', label: 'Success' },
+              { value: 'false', label: 'Failed' },
+            ]}
+          />
+        </div>
+
+        <button
+          onClick={handleSearch}
+          className="px-4 py-1.5 text-sm font-medium"
+          style={{ backgroundColor: colors.primary, color: 'white' }}
         >
-          <div className="flex flex-wrap gap-3 items-center">
-            {/* Search */}
-            <div className="flex-1 min-w-[200px]">
-              <input
-                type="text"
-                placeholder="Search by email, action, entity..."
-                value={filter.search}
-                onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-                onKeyPress={handleKeyPress}
-                className="w-full px-4 py-2.5 rounded-lg focus:outline-none focus:ring-2"
-                style={{
-                  backgroundColor: colors.bgSecondary,
-                  color: colors.textPrimary,
-                  border: `1px solid ${colors.border}`,
-                }}
-              />
-            </div>
+          Search
+        </button>
+      </div>
 
-            {/* Action Filter */}
-            <div className="w-[140px]">
-              <Select
-                value={filter.action}
-                onChange={(value) => setFilter({ ...filter, action: value, page: 1 })}
-                placeholder="All Actions"
-                options={actions.map((action) => ({ value: action, label: action }))}
-              />
-            </div>
-
-            {/* Entity Type Filter */}
-            <div className="w-[160px]">
-              <Select
-                value={filter.entityType}
-                onChange={(value) => setFilter({ ...filter, entityType: value, page: 1 })}
-                placeholder="All Types"
-                options={entityTypes.map((type) => ({ value: type, label: type }))}
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="w-[130px]">
-              <Select
-                value={filter.isSuccess === undefined ? '' : filter.isSuccess.toString()}
-                onChange={(value) =>
-                  setFilter({
-                    ...filter,
-                    isSuccess: value === '' ? undefined : value === 'true',
-                    page: 1,
-                  })
-                }
-                placeholder="All Status"
-                options={[
-                  { value: 'true', label: 'Success' },
-                  { value: 'false', label: 'Failed' },
-                ]}
-              />
-            </div>
-
-            {/* Search Button */}
-            <button
-              onClick={handleSearch}
-              className="px-5 py-2.5 rounded-lg font-medium transition-all hover:opacity-90"
-              style={{ backgroundColor: colors.primary, color: 'white' }}
-            >
-              Search
-            </button>
+      {/* Table */}
+      <div style={{ border: `1px solid ${colors.border}` }}>
+        {/* Table Header */}
+        <div
+          className="grid grid-cols-12 px-3 py-2"
+          style={{
+            backgroundColor: colors.bgSecondary,
+            borderBottom: `1px solid ${colors.border}`
+          }}
+        >
+          <div className="col-span-2 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+            Timestamp
+          </div>
+          <div className="col-span-2 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+            User
+          </div>
+          <div className="col-span-2 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+            Action
+          </div>
+          <div className="col-span-2 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+            Entity
+          </div>
+          <div className="col-span-1 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+            Status
+          </div>
+          <div className="col-span-2 text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+            IP Address
+          </div>
+          <div className="col-span-1 text-xs font-semibold uppercase tracking-wider text-center" style={{ color: colors.textPrimary }}>
+            Action
           </div>
         </div>
 
-      {/* Table */}
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{ backgroundColor: colors.bgSecondary, border: `1px solid ${colors.border}` }}
-      >
+        {/* Table Body */}
         {loading ? (
-          <div className="p-8 text-center" style={{ color: colors.textMuted }}>
-            Loading audit logs...
+          <div className="p-8 text-center text-sm" style={{ color: colors.textMuted }}>
+            Loading...
           </div>
         ) : auditLogs.length === 0 ? (
-          <div className="p-8 text-center" style={{ color: colors.textMuted }}>
-            No audit logs found
+          <div className="p-8 text-center text-sm" style={{ color: colors.textMuted }}>
+            No records found
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ backgroundColor: colors.bgTertiary }}>
-                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: colors.textMuted }}>
-                    Timestamp
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: colors.textMuted }}>
-                    User
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: colors.textMuted }}>
-                    Action
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: colors.textMuted }}>
-                    Entity
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: colors.textMuted }}>
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: colors.textMuted }}>
-                    IP Address
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium" style={{ color: colors.textMuted }}>
-                    Details
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {auditLogs.map((log) => (
-                  <tr
-                    key={log.id}
-                    className="border-t transition-colors hover:bg-opacity-50"
-                    style={{ borderColor: colors.border }}
+          <div>
+            {auditLogs.map((log, index) => (
+              <div
+                key={log.id}
+                className="grid grid-cols-12 px-3 py-2.5"
+                style={{
+                  backgroundColor: index % 2 === 0 ? colors.bgPrimary : colors.bgSecondary,
+                  borderBottom: `1px solid ${colors.border}`
+                }}
+              >
+                <div className="col-span-2 text-xs" style={{ color: colors.textSecondary }}>
+                  {formatDate(log.createdAt)}
+                </div>
+                <div className="col-span-2">
+                  <div className="text-xs font-medium" style={{ color: colors.textPrimary }}>
+                    {log.userName || 'System'}
+                  </div>
+                  <div className="text-xs" style={{ color: colors.textMuted }}>
+                    {log.userEmail || '-'}
+                  </div>
+                </div>
+                <div className="col-span-2 text-xs" style={{ color: colors.textPrimary }}>
+                  {log.action}
+                </div>
+                <div className="col-span-2">
+                  <div className="text-xs" style={{ color: colors.textPrimary }}>
+                    {log.entityType}
+                  </div>
+                  {log.entityId && (
+                    <div className="text-xs truncate font-mono" style={{ color: colors.textMuted }}>
+                      {log.entityId.substring(0, 16)}...
+                    </div>
+                  )}
+                </div>
+                <div className="col-span-1">
+                  {log.isSuccess ? (
+                    <span className="text-xs" style={{ color: colors.primary }}>
+                      Success
+                    </span>
+                  ) : (
+                    <span className="text-xs" style={{ color: colors.error }}>
+                      Failed
+                    </span>
+                  )}
+                </div>
+                <div className="col-span-2 text-xs font-mono" style={{ color: colors.textMuted }}>
+                  {log.ipAddress || '-'}
+                </div>
+                <div className="col-span-1 text-center">
+                  <button
+                    onClick={() => viewLogDetails(log)}
+                    className="px-2 py-0.5 text-xs hover:underline"
+                    style={{ color: colors.primary }}
                   >
-                    <td className="px-4 py-3 text-sm" style={{ color: colors.textSecondary }}>
-                      {formatDate(log.createdAt)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <div className="text-sm font-medium" style={{ color: colors.textPrimary }}>
-                          {log.userName || 'System'}
-                        </div>
-                        <div className="text-xs" style={{ color: colors.textMuted }}>
-                          {log.userEmail || '-'}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getActionBadgeColor(log.action)}`}
-                      >
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-sm" style={{ color: colors.textPrimary }}>
-                        {log.entityType}
-                      </div>
-                      {log.entityId && (
-                        <div className="text-xs truncate max-w-[150px]" style={{ color: colors.textMuted }}>
-                          {log.entityId}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {log.isSuccess ? (
-                        <span className="flex items-center gap-1 text-green-400 text-sm">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          Success
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-red-400 text-sm">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          Failed
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm" style={{ color: colors.textMuted }}>
-                      {log.ipAddress || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => viewLogDetails(log)}
-                        className="p-2 rounded-lg transition-colors hover:bg-opacity-80"
-                        style={{ backgroundColor: colors.bgTertiary }}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    View
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -314,152 +268,201 @@ export default function AuditLogs() {
 
       {/* Detail Modal */}
       {showModal && selectedLog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div
-            className="w-full max-w-2xl rounded-xl max-h-[90vh] overflow-y-auto"
-            style={{ backgroundColor: colors.bgSecondary }}
+            className="w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+            style={{ backgroundColor: colors.bgPrimary, border: `1px solid ${colors.border}` }}
           >
+            {/* Modal Header */}
             <div
-              className="flex items-center justify-between p-4 border-b"
-              style={{ borderColor: colors.border }}
+              className="flex items-center justify-between px-4 py-3"
+              style={{
+                backgroundColor: colors.bgSecondary,
+                borderBottom: `1px solid ${colors.border}`
+              }}
             >
-              <h2 className="text-lg font-semibold" style={{ color: colors.textPrimary }}>
+              <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
                 Audit Log Details
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-2 rounded-lg transition-colors"
-                style={{ backgroundColor: colors.bgTertiary }}
+                className="px-2 py-1 text-xs hover:underline"
+                style={{ color: colors.textMuted }}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                Close
               </button>
             </div>
 
-            <div className="p-4 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
+            {/* Modal Content */}
+            <div className="p-4">
+              {/* Basic Info Grid */}
+              <div style={{ border: `1px solid ${colors.border}` }}>
+                <div
+                  className="px-3 py-2"
+                  style={{
+                    backgroundColor: colors.bgSecondary,
+                    borderBottom: `1px solid ${colors.border}`
+                  }}
+                >
+                  <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                    Basic Information
+                  </h3>
+                </div>
+                <div className="grid grid-cols-3 px-3 py-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <div className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>
                     Timestamp
-                  </label>
-                  <div className="text-sm" style={{ color: colors.textPrimary }}>
+                  </div>
+                  <div className="col-span-2 text-xs" style={{ color: colors.textPrimary }}>
                     {formatDate(selectedLog.createdAt)}
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
-                    Status
-                  </label>
-                  <div>
-                    {selectedLog.isSuccess ? (
-                      <span className="text-green-400 text-sm">Success</span>
-                    ) : (
-                      <span className="text-red-400 text-sm">Failed</span>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
+                <div className="grid grid-cols-3 px-3 py-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <div className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>
                     User
-                  </label>
-                  <div className="text-sm" style={{ color: colors.textPrimary }}>
-                    {selectedLog.userName || 'System'}
                   </div>
-                  <div className="text-xs" style={{ color: colors.textMuted }}>
-                    {selectedLog.userEmail || '-'}
+                  <div className="col-span-2">
+                    <div className="text-xs" style={{ color: colors.textPrimary }}>
+                      {selectedLog.userName || 'System'}
+                    </div>
+                    <div className="text-xs" style={{ color: colors.textMuted }}>
+                      {selectedLog.userEmail || '-'}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
+                <div className="grid grid-cols-3 px-3 py-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <div className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>
                     Action
-                  </label>
-                  <div>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getActionBadgeColor(selectedLog.action)}`}
-                    >
-                      {selectedLog.action}
-                    </span>
+                  </div>
+                  <div className="col-span-2 text-xs" style={{ color: colors.textPrimary }}>
+                    {selectedLog.action}
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
+                <div className="grid grid-cols-3 px-3 py-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <div className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>
                     Entity Type
-                  </label>
-                  <div className="text-sm" style={{ color: colors.textPrimary }}>
+                  </div>
+                  <div className="col-span-2 text-xs" style={{ color: colors.textPrimary }}>
                     {selectedLog.entityType}
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
+                <div className="grid grid-cols-3 px-3 py-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <div className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>
                     Entity ID
-                  </label>
-                  <div className="text-sm font-mono" style={{ color: colors.textPrimary }}>
+                  </div>
+                  <div className="col-span-2 text-xs font-mono" style={{ color: colors.textPrimary }}>
                     {selectedLog.entityId || '-'}
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
+                <div className="grid grid-cols-3 px-3 py-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <div className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>
+                    Status
+                  </div>
+                  <div className="col-span-2">
+                    {selectedLog.isSuccess ? (
+                      <span className="text-xs" style={{ color: colors.primary }}>Success</span>
+                    ) : (
+                      <span className="text-xs" style={{ color: colors.error }}>Failed</span>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 px-3 py-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <div className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>
                     IP Address
-                  </label>
-                  <div className="text-sm font-mono" style={{ color: colors.textPrimary }}>
+                  </div>
+                  <div className="col-span-2 text-xs font-mono" style={{ color: colors.textPrimary }}>
                     {selectedLog.ipAddress || '-'}
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
+                <div className="grid grid-cols-3 px-3 py-2">
+                  <div className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>
                     User Agent
-                  </label>
-                  <div className="text-xs truncate" style={{ color: colors.textMuted }}>
+                  </div>
+                  <div className="col-span-2 text-xs break-all" style={{ color: colors.textMuted }}>
                     {selectedLog.userAgent || '-'}
                   </div>
                 </div>
               </div>
 
+              {/* Additional Info */}
               {selectedLog.additionalInfo && (
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
-                    Additional Info
-                  </label>
-                  <div className="text-sm mt-1" style={{ color: colors.textPrimary }}>
+                <div className="mt-4" style={{ border: `1px solid ${colors.border}` }}>
+                  <div
+                    className="px-3 py-2"
+                    style={{
+                      backgroundColor: colors.bgSecondary,
+                      borderBottom: `1px solid ${colors.border}`
+                    }}
+                  >
+                    <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                      Additional Information
+                    </h3>
+                  </div>
+                  <div className="px-3 py-2 text-xs" style={{ color: colors.textPrimary }}>
                     {selectedLog.additionalInfo}
                   </div>
                 </div>
               )}
 
+              {/* Error Message */}
               {selectedLog.errorMessage && (
-                <div>
-                  <label className="text-xs font-medium text-red-400">Error Message</label>
+                <div className="mt-4" style={{ border: `1px solid ${colors.border}` }}>
                   <div
-                    className="text-sm mt-1 p-3 rounded-lg bg-red-500/10 text-red-400 font-mono"
+                    className="px-3 py-2"
+                    style={{
+                      backgroundColor: colors.bgSecondary,
+                      borderBottom: `1px solid ${colors.border}`
+                    }}
                   >
+                    <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.error }}>
+                      Error Message
+                    </h3>
+                  </div>
+                  <div className="px-3 py-2 text-xs font-mono" style={{ color: colors.error }}>
                     {selectedLog.errorMessage}
                   </div>
                 </div>
               )}
 
+              {/* Old Values */}
               {selectedLog.oldValues && (
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
-                    Old Values
-                  </label>
+                <div className="mt-4" style={{ border: `1px solid ${colors.border}` }}>
+                  <div
+                    className="px-3 py-2"
+                    style={{
+                      backgroundColor: colors.bgSecondary,
+                      borderBottom: `1px solid ${colors.border}`
+                    }}
+                  >
+                    <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                      Old Values
+                    </h3>
+                  </div>
                   <pre
-                    className="text-xs mt-1 p-3 rounded-lg overflow-x-auto"
-                    style={{ backgroundColor: colors.bgTertiary, color: colors.textPrimary }}
+                    className="px-3 py-2 text-xs font-mono overflow-x-auto"
+                    style={{ color: colors.textPrimary }}
                   >
                     {JSON.stringify(JSON.parse(selectedLog.oldValues), null, 2)}
                   </pre>
                 </div>
               )}
 
+              {/* New Values */}
               {selectedLog.newValues && (
-                <div>
-                  <label className="text-xs font-medium" style={{ color: colors.textMuted }}>
-                    New Values
-                  </label>
+                <div className="mt-4" style={{ border: `1px solid ${colors.border}` }}>
+                  <div
+                    className="px-3 py-2"
+                    style={{
+                      backgroundColor: colors.bgSecondary,
+                      borderBottom: `1px solid ${colors.border}`
+                    }}
+                  >
+                    <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+                      New Values
+                    </h3>
+                  </div>
                   <pre
-                    className="text-xs mt-1 p-3 rounded-lg overflow-x-auto"
-                    style={{ backgroundColor: colors.bgTertiary, color: colors.textPrimary }}
+                    className="px-3 py-2 text-xs font-mono overflow-x-auto"
+                    style={{ color: colors.textPrimary }}
                   >
                     {JSON.stringify(JSON.parse(selectedLog.newValues), null, 2)}
                   </pre>
@@ -469,7 +472,6 @@ export default function AuditLogs() {
           </div>
         </div>
       )}
-      </div>
     </DashboardLayout>
   );
 }

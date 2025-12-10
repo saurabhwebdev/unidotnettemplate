@@ -5,12 +5,10 @@ import { authService } from '../services/auth.service';
 import type { User, UpdateProfileRequest } from '../services/auth.service';
 import { usersService } from '../services/users.service';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Skeleton } from '../components/ui/skeleton';
 import { colors } from '../config/theme.config';
-import { Pencil, X, Check, Loader2, Building2, Phone, MapPin, Calendar, Users, Briefcase, BadgeCheck } from 'lucide-react';
+import { Pencil, X, Check, Loader2 } from 'lucide-react';
 
 const AVATAR_VARIANTS = ['marble', 'beam', 'pixel', 'sunset', 'ring', 'bauhaus'] as const;
 const AVATAR_COLORS_PRESETS = [
@@ -48,7 +46,6 @@ export function Profile() {
       try {
         const userData = await authService.getCurrentUser();
         setUser(userData);
-        // Parse saved avatar settings if exists
         if (userData.avatarColor) {
           try {
             const savedSettings = JSON.parse(userData.avatarColor);
@@ -83,7 +80,6 @@ export function Profile() {
       });
       setUser({ ...user, avatarColor: avatarSettings });
       setShowAvatarEditor(false);
-      // Dispatch event to notify header to update
       window.dispatchEvent(new CustomEvent('avatarUpdated'));
     } catch (error) {
       console.error('Failed to save avatar:', error);
@@ -141,9 +137,7 @@ export function Profile() {
       setUser(updatedUser);
       setIsEditing(false);
       setSaveSuccess(true);
-      // Hide success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
-      // Dispatch event to notify header to update
       window.dispatchEvent(new CustomEvent('avatarUpdated'));
     } catch (error: any) {
       console.error('Failed to save profile:', error);
@@ -154,454 +148,254 @@ export function Profile() {
   };
 
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Not set';
+    if (!dateString) return '-';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="grid gap-6">
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-6">
-                <Skeleton className="h-24 w-24 rounded-full" variant="circular" />
-                <div className="flex-1 space-y-3">
-                  <Skeleton className="h-8 w-48" />
-                  <Skeleton className="h-4 w-64" />
-                  <Skeleton className="h-6 w-24 rounded-full" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader>
-              <Skeleton className="h-7 w-48 mb-2" />
-              <Skeleton className="h-4 w-72" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-5 w-32" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-5 w-32" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-5 w-full max-w-sm" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-5 w-full max-w-md" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader>
-              <Skeleton className="h-7 w-40 mb-2" />
-              <Skeleton className="h-4 w-64" />
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <Skeleton className="h-5 w-32" />
-                  <Skeleton className="h-7 w-16 rounded-full" />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
+    return <DashboardLayout><div style={{ color: colors.textMuted }}>Loading...</div></DashboardLayout>;
   }
 
   const currentSettings = getCurrentAvatarSettings();
 
+  const DataRow = ({ label, value, editable = false, field = '', type = 'text', adminOnly = false }: {
+    label: string;
+    value: string | null | undefined;
+    editable?: boolean;
+    field?: keyof UpdateProfileRequest;
+    type?: string;
+    adminOnly?: boolean;
+  }) => (
+    <div
+      className="grid grid-cols-3 py-3 px-4"
+      style={{ borderBottom: `1px solid ${colors.border}` }}
+    >
+      <div className="col-span-1">
+        <label className="text-xs font-medium uppercase tracking-wider" style={{ color: colors.textMuted }}>
+          {label}
+        </label>
+      </div>
+      <div className="col-span-2">
+        {isEditing && editable && field ? (
+          <Input
+            type={type}
+            value={(editForm[field] as string) || ''}
+            onChange={(e) => setEditForm({ ...editForm, [field]: e.target.value || null })}
+            className="h-8 text-sm"
+            style={{
+              borderColor: colors.border,
+              color: colors.textPrimary,
+              backgroundColor: colors.bgSecondary
+            }}
+          />
+        ) : (
+          <div>
+            <p className="text-sm" style={{ color: value ? colors.textPrimary : colors.textMuted }}>
+              {value || '-'}
+            </p>
+            {adminOnly && !value && (
+              <p className="text-xs mt-1" style={{ color: colors.textMuted }}>
+                Contact your administrator to set
+              </p>
+            )}
+            {adminOnly && value && isEditing && (
+              <p className="text-xs mt-1" style={{ color: colors.textMuted }}>
+                Admin-managed field
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <DashboardLayout>
-      <div className="grid gap-6">
-          {/* Profile Header Card */}
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-6">
-                <div className="relative group">
-                  <div className="h-24 w-24 rounded-full overflow-hidden"
-                    style={{
-                      boxShadow: `0 0 0 4px ${colors.primary}, 0 0 0 6px ${colors.bgPrimary}`
-                    }}
-                  >
-                    <Avatar
-                      size={96}
-                      name={`${user?.firstName} ${user?.lastName}`}
-                      variant={currentSettings.variant}
-                      colors={AVATAR_COLORS_PRESETS[currentSettings.colorIndex]}
-                    />
-                  </div>
-                  <button
-                    onClick={() => setShowAvatarEditor(true)}
-                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                  >
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex-1">
-                  <h2
-                    className="text-2xl font-bold mb-1"
-                    style={{ color: colors.textPrimary }}
-                  >
-                    {user?.firstName} {user?.lastName}
-                  </h2>
-                  <p
-                    className="text-sm mb-2"
-                    style={{ color: colors.textMuted }}
-                  >
-                    {user?.email}
-                  </p>
-                  <div
-                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: colors.primaryLight,
-                      color: colors.primary
-                    }}
-                  >
-                    Active User
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Success/Error Messages */}
+      {saveSuccess && (
+        <div
+          className="text-sm p-3 mb-4 flex items-center gap-2"
+          style={{ backgroundColor: colors.bgSecondary, color: colors.primary, border: `1px solid ${colors.border}` }}
+        >
+          <Check className="h-4 w-4" />
+          Profile updated successfully
+        </div>
+      )}
+      {saveError && (
+        <div
+          className="text-sm p-3 mb-4"
+          style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}
+        >
+          {saveError}
+        </div>
+      )}
 
-          {/* Personal Information */}
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle style={{ color: colors.textPrimary }}>Personal Information</CardTitle>
-                <CardDescription style={{ color: colors.textMuted }}>
-                  Your account details and information
-                </CardDescription>
+      {/* Profile Header Bar */}
+      <div
+        className="flex items-center justify-between p-4 mb-6"
+        style={{
+          backgroundColor: colors.bgSecondary,
+          border: `1px solid ${colors.border}`
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <div className="h-16 w-16 rounded-full overflow-hidden cursor-pointer">
+              <Avatar
+                size={64}
+                name={`${user?.firstName} ${user?.lastName}`}
+                variant={currentSettings.variant}
+                colors={AVATAR_COLORS_PRESETS[currentSettings.colorIndex]}
+              />
+              <div
+                onClick={() => setShowAvatarEditor(true)}
+                className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Pencil className="h-4 w-4 text-white" />
               </div>
-              {!isEditing ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleStartEdit}
-                  className="flex items-center gap-2"
-                  style={{ borderColor: colors.border, color: colors.textPrimary }}
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit
-                </Button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancelEdit}
-                    className="flex items-center gap-2"
-                    style={{ borderColor: colors.border, color: colors.textMuted }}
-                  >
-                    <X className="h-4 w-4" />
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSaveProfile}
-                    disabled={savingProfile}
-                    className="flex items-center gap-2"
-                    style={{ backgroundColor: colors.primary, color: 'white' }}
-                  >
-                    {savingProfile ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Check className="h-4 w-4" />
-                    )}
-                    Save
-                  </Button>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-4" style={{ color: colors.textSecondary }}>
-              {/* Success/Error Messages */}
-              {saveSuccess && (
-                <div
-                  className="text-sm p-3 rounded-md flex items-center gap-2"
-                  style={{ backgroundColor: '#d1fae5', color: '#065f46' }}
-                >
-                  <Check className="h-4 w-4" />
-                  Profile updated successfully!
-                </div>
-              )}
-              {saveError && (
-                <div
-                  className="text-sm p-3 rounded-md"
-                  style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}
-                >
-                  {saveError}
-                </div>
-              )}
+            </div>
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold mb-0.5" style={{ color: colors.textPrimary }}>
+              {user?.firstName} {user?.lastName}
+            </h1>
+            <p className="text-xs mb-0.5" style={{ color: colors.textMuted }}>
+              {user?.email}
+            </p>
+            <div
+              className="inline-block px-2 py-0.5 text-xs"
+              style={{
+                backgroundColor: colors.bgPrimary,
+                color: colors.primary,
+                border: `1px solid ${colors.border}`
+              }}
+            >
+              Active
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {!isEditing ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleStartEdit}
+              className="flex items-center gap-2 h-8 text-xs"
+              style={{ borderColor: colors.border, color: colors.textPrimary }}
+            >
+              <Pencil className="h-3 w-3" />
+              Edit
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancelEdit}
+                className="flex items-center gap-2 h-8 text-xs"
+                style={{ borderColor: colors.border, color: colors.textMuted }}
+              >
+                <X className="h-3 w-3" />
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+                className="flex items-center gap-2 h-8 text-xs"
+                style={{ backgroundColor: colors.primary, color: 'white' }}
+              >
+                {savingProfile ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Check className="h-3 w-3" />
+                )}
+                Save
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-1"
-                    style={{ color: colors.textMuted }}
-                  >
-                    First Name
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={editForm.firstName}
-                      onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
-                      style={{ borderColor: colors.border, color: colors.textPrimary }}
-                    />
-                  ) : (
-                    <p style={{ color: colors.textPrimary }}>{user?.firstName}</p>
-                  )}
-                </div>
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-1"
-                    style={{ color: colors.textMuted }}
-                  >
-                    Last Name
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={editForm.lastName}
-                      onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
-                      style={{ borderColor: colors.border, color: colors.textPrimary }}
-                    />
-                  ) : (
-                    <p style={{ color: colors.textPrimary }}>{user?.lastName}</p>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label
-                  className="text-sm font-medium block mb-1"
-                  style={{ color: colors.textMuted }}
-                >
-                  Email Address
-                </label>
-                <p style={{ color: colors.textPrimary }}>{user?.email}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-1 flex items-center gap-2"
-                    style={{ color: colors.textMuted }}
-                  >
-                    <Phone className="h-4 w-4" />
-                    Phone Number
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={editForm.phoneNumber || ''}
-                      onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value || null })}
-                      placeholder="Enter phone number"
-                      style={{ borderColor: colors.border, color: colors.textPrimary }}
-                    />
-                  ) : (
-                    <p style={{ color: user?.phoneNumber ? colors.textPrimary : colors.textMuted }}>
-                      {user?.phoneNumber || 'Not set'}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-1 flex items-center gap-2"
-                    style={{ color: colors.textMuted }}
-                  >
-                    <MapPin className="h-4 w-4" />
-                    Office Location
-                  </label>
-                  {isEditing ? (
-                    <Input
-                      value={editForm.officeLocation || ''}
-                      onChange={(e) => setEditForm({ ...editForm, officeLocation: e.target.value || null })}
-                      placeholder="Enter office location"
-                      style={{ borderColor: colors.border, color: colors.textPrimary }}
-                    />
-                  ) : (
-                    <p style={{ color: user?.officeLocation ? colors.textPrimary : colors.textMuted }}>
-                      {user?.officeLocation || 'Not set'}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label
-                  className="text-sm font-medium block mb-1"
-                  style={{ color: colors.textMuted }}
-                >
-                  User ID
-                </label>
-                <p
-                  className="font-mono text-sm"
-                  style={{ color: colors.textSecondary }}
-                >
-                  {user?.id}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Data Tables */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Personal Information */}
+        <div style={{ border: `1px solid ${colors.border}` }}>
+          <div
+            className="px-4 py-3"
+            style={{
+              backgroundColor: colors.bgSecondary,
+              borderBottom: `1px solid ${colors.border}`
+            }}
+          >
+            <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+              Personal Information
+            </h2>
+          </div>
+          <div>
+            <DataRow label="First Name" value={user?.firstName} editable field="firstName" />
+            <DataRow label="Last Name" value={user?.lastName} editable field="lastName" />
+            <DataRow label="Email" value={user?.email} />
+            <DataRow label="Phone" value={user?.phoneNumber} editable field="phoneNumber" type="tel" />
+            <DataRow label="Office Location" value={user?.officeLocation} editable field="officeLocation" />
+            <DataRow label="User ID" value={user?.id} />
+          </div>
+        </div>
 
-          {/* Employee Information */}
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2" style={{ color: colors.textPrimary }}>
-                <Briefcase className="h-5 w-5" />
-                Employee Information
-              </CardTitle>
-              <CardDescription style={{ color: colors.textMuted }}>
-                Your organizational details (managed by administrators)
-              </CardDescription>
-            </CardHeader>
-            <CardContent style={{ color: colors.textSecondary }}>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-1 flex items-center gap-2"
-                    style={{ color: colors.textMuted }}
-                  >
-                    <BadgeCheck className="h-4 w-4" />
-                    Employee ID
-                  </label>
-                  <p style={{ color: user?.employeeId ? colors.textPrimary : colors.textMuted }}>
-                    {user?.employeeId || 'Not assigned'}
-                  </p>
-                </div>
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-1 flex items-center gap-2"
-                    style={{ color: colors.textMuted }}
-                  >
-                    <Briefcase className="h-4 w-4" />
-                    Designation
-                  </label>
-                  <p style={{ color: user?.designation ? colors.textPrimary : colors.textMuted }}>
-                    {user?.designation || 'Not assigned'}
-                  </p>
-                </div>
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-1 flex items-center gap-2"
-                    style={{ color: colors.textMuted }}
-                  >
-                    <Building2 className="h-4 w-4" />
-                    Department
-                  </label>
-                  <p style={{ color: user?.department ? colors.textPrimary : colors.textMuted }}>
-                    {user?.department || 'Not assigned'}
-                  </p>
-                </div>
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-1 flex items-center gap-2"
-                    style={{ color: colors.textMuted }}
-                  >
-                    <Calendar className="h-4 w-4" />
-                    Date of Joining
-                  </label>
-                  <p style={{ color: user?.dateOfJoining ? colors.textPrimary : colors.textMuted }}>
-                    {formatDate(user?.dateOfJoining)}
-                  </p>
-                </div>
-                <div className="col-span-2">
-                  <label
-                    className="text-sm font-medium block mb-1 flex items-center gap-2"
-                    style={{ color: colors.textMuted }}
-                  >
-                    <Users className="h-4 w-4" />
-                    Reports To
-                  </label>
-                  <p style={{ color: user?.reportsToName ? colors.textPrimary : colors.textMuted }}>
-                    {user?.reportsToName || 'Not assigned'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Account Status */}
-          <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-            <CardHeader>
-              <CardTitle style={{ color: colors.textPrimary }}>Account Status</CardTitle>
-              <CardDescription style={{ color: colors.textMuted }}>
-                Information about your account status
-              </CardDescription>
-            </CardHeader>
-            <CardContent style={{ color: colors.textSecondary }}>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span>Account Status</span>
-                  <span
-                    className="px-3 py-1 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: colors.primaryLight,
-                      color: colors.primary
-                    }}
-                  >
-                    Active
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Email Verified</span>
-                  <span
-                    className="px-3 py-1 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: colors.primaryLight,
-                      color: colors.primary
-                    }}
-                  >
-                    Yes
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Employee Information */}
+        <div style={{ border: `1px solid ${colors.border}` }}>
+          <div
+            className="px-4 py-3"
+            style={{
+              backgroundColor: colors.bgSecondary,
+              borderBottom: `1px solid ${colors.border}`
+            }}
+          >
+            <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.textPrimary }}>
+              Employee Information
+            </h2>
+          </div>
+          <div>
+            <DataRow label="Employee ID" value={user?.employeeId} adminOnly={true} />
+            <DataRow label="Designation" value={user?.designation} adminOnly={true} />
+            <DataRow label="Department" value={user?.department} adminOnly={true} />
+            <DataRow label="Date of Joining" value={formatDate(user?.dateOfJoining)} adminOnly={true} />
+            <DataRow label="Reports To" value={user?.reportsToName} adminOnly={true} />
+          </div>
+        </div>
       </div>
 
       {/* Avatar Editor Modal */}
       {showAvatarEditor && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div
-            className="w-full max-w-lg rounded-xl overflow-hidden"
-            style={{ backgroundColor: colors.bgSecondary }}
+            className="w-full max-w-lg"
+            style={{ backgroundColor: colors.bgPrimary, border: `1px solid ${colors.border}` }}
           >
             <div
-              className="flex items-center justify-between p-4 border-b"
-              style={{ borderColor: colors.border }}
+              className="flex items-center justify-between px-4 py-3"
+              style={{
+                backgroundColor: colors.bgSecondary,
+                borderBottom: `1px solid ${colors.border}`
+              }}
             >
-              <h2 className="text-lg font-semibold" style={{ color: colors.textPrimary }}>
+              <h2 className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
                 Customize Avatar
               </h2>
               <button
                 onClick={() => setShowAvatarEditor(false)}
-                className="p-2 rounded-lg transition-colors hover:bg-opacity-80"
-                style={{ backgroundColor: colors.bgTertiary }}
+                className="p-1.5 transition-colors"
+                style={{ color: colors.textMuted }}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-6">
               {/* Preview */}
               <div className="flex justify-center mb-6">
-                <div className="h-32 w-32 rounded-full overflow-hidden"
-                  style={{ boxShadow: `0 0 0 4px ${colors.primary}` }}
-                >
+                <div className="h-32 w-32 rounded-full overflow-hidden">
                   <Avatar
                     size={128}
                     name={`${user?.firstName} ${user?.lastName}`}
@@ -613,7 +407,7 @@ export function Profile() {
 
               {/* Variant Selection */}
               <div className="mb-6">
-                <label className="text-sm font-medium mb-3 block" style={{ color: colors.textMuted }}>
+                <label className="text-xs font-medium mb-3 block uppercase tracking-wider" style={{ color: colors.textMuted }}>
                   Avatar Style
                 </label>
                 <div className="grid grid-cols-6 gap-2">
@@ -621,10 +415,10 @@ export function Profile() {
                     <button
                       key={variant}
                       onClick={() => setSelectedVariant(variant)}
-                      className="p-2 rounded-lg transition-all"
+                      className="p-2 transition-all"
                       style={{
-                        backgroundColor: colors.bgTertiary,
-                        boxShadow: selectedVariant === variant ? `0 0 0 2px ${colors.primary}` : 'none'
+                        backgroundColor: colors.bgSecondary,
+                        border: selectedVariant === variant ? `2px solid ${colors.primary}` : `1px solid ${colors.border}`
                       }}
                     >
                       <Avatar
@@ -640,7 +434,7 @@ export function Profile() {
 
               {/* Color Selection */}
               <div className="mb-6">
-                <label className="text-sm font-medium mb-3 block" style={{ color: colors.textMuted }}>
+                <label className="text-xs font-medium mb-3 block uppercase tracking-wider" style={{ color: colors.textMuted }}>
                   Color Palette
                 </label>
                 <div className="grid grid-cols-6 gap-2">
@@ -648,10 +442,10 @@ export function Profile() {
                     <button
                       key={index}
                       onClick={() => setSelectedColors(index)}
-                      className="h-10 rounded-lg transition-all"
+                      className="h-10 transition-all"
                       style={{
                         background: `linear-gradient(135deg, ${colorSet[0]} 0%, ${colorSet[1]} 25%, ${colorSet[2]} 50%, ${colorSet[3]} 75%, ${colorSet[4]} 100%)`,
-                        boxShadow: selectedColors === index ? `0 0 0 2px ${colors.primary}` : 'none'
+                        border: selectedColors === index ? `2px solid ${colors.primary}` : `1px solid ${colors.border}`
                       }}
                     />
                   ))}
@@ -662,17 +456,21 @@ export function Profile() {
               <div className="flex gap-3 justify-end">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => setShowAvatarEditor(false)}
+                  className="h-8 text-xs"
                   style={{ borderColor: colors.border, color: colors.textPrimary }}
                 >
                   Cancel
                 </Button>
                 <Button
+                  size="sm"
                   onClick={handleSaveAvatar}
                   disabled={savingAvatar}
+                  className="h-8 text-xs"
                   style={{ backgroundColor: colors.primary, color: 'white' }}
                 >
-                  {savingAvatar ? 'Saving...' : 'Save Avatar'}
+                  {savingAvatar ? 'Saving...' : 'Save'}
                 </Button>
               </div>
             </div>

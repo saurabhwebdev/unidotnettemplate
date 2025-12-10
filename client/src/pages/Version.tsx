@@ -1,8 +1,6 @@
 import { DashboardLayout } from '../components/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { colors } from '../config/theme.config';
 import {
-  Rocket,
   Server,
   Database,
   Shield,
@@ -13,13 +11,11 @@ import {
   Sparkles,
   User,
   Globe,
-  Monitor,
+  Zap,
   Layers,
   RefreshCw,
   Lock,
   FileText,
-  Wrench,
-  Zap,
 } from 'lucide-react';
 
 // Stack info data
@@ -45,296 +41,188 @@ const stackInfo = {
     { name: 'Boring Avatars', version: '1.11', icon: User, color: '#8B5CF6' },
     { name: 'Axios', version: '1.7', icon: Globe, color: '#5A29E4' },
   ],
+  features: [
+    { name: 'Clean Architecture', description: 'Separation of concerns with API, Core, and Data layers', icon: Layers, color: colors.primary },
+    { name: 'RESTful API', description: 'Standard REST endpoints with JWT authentication', icon: RefreshCw, color: '#3B82F6' },
+    { name: 'Role-Based Access', description: 'Granular permissions with role management', icon: Lock, color: '#10B981' },
+    { name: 'Audit Logging', description: 'Complete activity tracking and audit trails', icon: FileText, color: '#F56565' },
+  ],
 };
 
 export default function Version() {
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-4xl mx-auto">
-        {/* Main Version Card */}
-        <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-          <CardContent className="pt-8 pb-8">
-            <div className="text-center">
-              <div
-                className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4"
-                style={{ backgroundColor: colors.primaryLight }}
-              >
-                <Rocket size={40} style={{ color: colors.primary }} />
-              </div>
-              <h1 className="text-3xl font-bold mb-2" style={{ color: colors.textPrimary }}>
-                UniTemplate
-              </h1>
-              <p className="text-lg mb-4" style={{ color: colors.textMuted }}>
-                Universal .NET + React Template
-              </p>
-              <div
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
-                style={{ backgroundColor: colors.primaryLight }}
-              >
-                <span className="text-sm font-semibold" style={{ color: colors.primary }}>
-                  Version {stackInfo.version}
-                </span>
-              </div>
-              <p className="text-sm mt-4" style={{ color: colors.textMuted }}>
-                Build Date: {stackInfo.buildDate}
-              </p>
+      {/* Header Section */}
+      <div
+        className="pb-6 mb-6"
+        style={{ borderBottom: `1px solid ${colors.border}` }}
+      >
+        <div className="flex items-baseline justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-1" style={{ color: colors.textPrimary }}>
+              UniTemplate
+            </h1>
+            <p className="text-base" style={{ color: colors.textMuted }}>
+              Universal .NET + React Template
+            </p>
+          </div>
+          <div className="text-right">
+            <div
+              className="inline-block px-3 py-1 text-xs font-medium mb-1"
+              style={{
+                backgroundColor: colors.bgSecondary,
+                color: colors.primary,
+                border: `1px solid ${colors.border}`
+              }}
+            >
+              v{stackInfo.version}
             </div>
-          </CardContent>
-        </Card>
+            <p className="text-xs" style={{ color: colors.textMuted }}>
+              {stackInfo.buildDate}
+            </p>
+          </div>
+        </div>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Backend Stack */}
-        <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3" style={{ color: colors.textPrimary }}>
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: colors.primaryLight }}
-              >
-                <Monitor size={20} style={{ color: colors.primary }} />
-              </div>
-              Backend Stack
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stackInfo.backend.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.name}
-                    className="flex items-center gap-3 p-4 rounded-xl transition-all hover:scale-[1.02]"
-                    style={{
-                      backgroundColor: colors.bgSecondary,
-                      border: `1px solid ${colors.border}`,
-                    }}
-                  >
-                    <div
-                      className="w-12 h-12 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${item.color}15` }}
-                    >
-                      <Icon size={24} style={{ color: item.color }} />
-                    </div>
-                    <div>
-                      <p className="font-semibold" style={{ color: colors.textPrimary }}>
-                        {item.name}
-                      </p>
-                      <p className="text-sm" style={{ color: colors.textMuted }}>
-                        v{item.version}
-                      </p>
-                    </div>
+        <div>
+          <div className="flex items-center gap-2 mb-4 pb-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+            <Server size={18} style={{ color: colors.textPrimary }} />
+            <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textPrimary }}>
+              Backend
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {stackInfo.backend.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between py-2 px-3"
+                  style={{
+                    backgroundColor: colors.bgSecondary,
+                    border: `1px solid ${colors.border}`,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon size={16} style={{ color: item.color }} />
+                    <span className="text-sm font-medium" style={{ color: colors.textPrimary }}>
+                      {item.name}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  <span className="text-xs" style={{ color: colors.textMuted }}>
+                    v{item.version}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Frontend Stack */}
-        <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3" style={{ color: colors.textPrimary }}>
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: colors.primaryLight }}
-              >
-                <Palette size={20} style={{ color: colors.primary }} />
-              </div>
-              Frontend Stack
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stackInfo.frontend.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.name}
-                    className="flex items-center gap-3 p-4 rounded-xl transition-all hover:scale-[1.02]"
-                    style={{
-                      backgroundColor: colors.bgSecondary,
-                      border: `1px solid ${colors.border}`,
-                    }}
-                  >
-                    <div
-                      className="w-12 h-12 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${item.color}15` }}
-                    >
-                      <Icon size={24} style={{ color: item.color }} />
-                    </div>
-                    <div>
-                      <p className="font-semibold" style={{ color: colors.textPrimary }}>
-                        {item.name}
-                      </p>
-                      <p className="text-sm" style={{ color: colors.textMuted }}>
-                        v{item.version}
-                      </p>
-                    </div>
+        <div>
+          <div className="flex items-center gap-2 mb-4 pb-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+            <Palette size={18} style={{ color: colors.textPrimary }} />
+            <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textPrimary }}>
+              Frontend
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {stackInfo.frontend.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between py-2 px-3"
+                  style={{
+                    backgroundColor: colors.bgSecondary,
+                    border: `1px solid ${colors.border}`,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon size={16} style={{ color: item.color }} />
+                    <span className="text-sm font-medium" style={{ color: colors.textPrimary }}>
+                      {item.name}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  <span className="text-xs" style={{ color: colors.textMuted }}>
+                    v{item.version}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Tools & Libraries */}
-        <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3" style={{ color: colors.textPrimary }}>
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: colors.primaryLight }}
-              >
-                <Wrench size={20} style={{ color: colors.primary }} />
-              </div>
-              Tools & Libraries
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stackInfo.tools.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.name}
-                    className="flex items-center gap-3 p-4 rounded-xl transition-all hover:scale-[1.02]"
-                    style={{
-                      backgroundColor: colors.bgSecondary,
-                      border: `1px solid ${colors.border}`,
-                    }}
-                  >
-                    <div
-                      className="w-12 h-12 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${item.color}15` }}
-                    >
-                      <Icon size={24} style={{ color: item.color }} />
-                    </div>
-                    <div>
-                      <p className="font-semibold" style={{ color: colors.textPrimary }}>
-                        {item.name}
-                      </p>
-                      <p className="text-sm" style={{ color: colors.textMuted }}>
-                        v{item.version}
-                      </p>
-                    </div>
+        <div>
+          <div className="flex items-center gap-2 mb-4 pb-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+            <Sparkles size={18} style={{ color: colors.textPrimary }} />
+            <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textPrimary }}>
+              Tools
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {stackInfo.tools.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between py-2 px-3"
+                  style={{
+                    backgroundColor: colors.bgSecondary,
+                    border: `1px solid ${colors.border}`,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon size={16} style={{ color: item.color }} />
+                    <span className="text-sm font-medium" style={{ color: colors.textPrimary }}>
+                      {item.name}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  <span className="text-xs" style={{ color: colors.textMuted }}>
+                    v{item.version}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-        {/* Architecture Info */}
-        <Card style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3" style={{ color: colors.textPrimary }}>
+      {/* Features Section */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4 pb-2" style={{ borderBottom: `1px solid ${colors.border}` }}>
+          <Layers size={18} style={{ color: colors.textPrimary }} />
+          <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: colors.textPrimary }}>
+            Architecture & Features
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stackInfo.features.map((feature) => {
+            const Icon = feature.icon;
+            return (
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: colors.primaryLight }}
-              >
-                <Layers size={20} style={{ color: colors.primary }} />
-              </div>
-              Architecture
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div
-                className="p-4 rounded-xl"
+                key={feature.name}
+                className="p-4"
                 style={{
                   backgroundColor: colors.bgSecondary,
                   border: `1px solid ${colors.border}`,
                 }}
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${colors.primary}15` }}
-                  >
-                    <Layers size={20} style={{ color: colors.primary }} />
-                  </div>
-                  <p className="font-semibold" style={{ color: colors.textPrimary }}>
-                    Clean Architecture
-                  </p>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon size={16} style={{ color: feature.color }} />
+                  <h3 className="text-sm font-semibold" style={{ color: colors.textPrimary }}>
+                    {feature.name}
+                  </h3>
                 </div>
-                <p className="text-sm" style={{ color: colors.textMuted }}>
-                  Separation of concerns with API, Core, and Data layers
+                <p className="text-xs leading-relaxed" style={{ color: colors.textMuted }}>
+                  {feature.description}
                 </p>
               </div>
-              <div
-                className="p-4 rounded-xl"
-                style={{
-                  backgroundColor: colors.bgSecondary,
-                  border: `1px solid ${colors.border}`,
-                }}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: '#3B82F615' }}
-                  >
-                    <RefreshCw size={20} style={{ color: '#3B82F6' }} />
-                  </div>
-                  <p className="font-semibold" style={{ color: colors.textPrimary }}>
-                    RESTful API
-                  </p>
-                </div>
-                <p className="text-sm" style={{ color: colors.textMuted }}>
-                  Standard REST endpoints with JWT authentication
-                </p>
-              </div>
-              <div
-                className="p-4 rounded-xl"
-                style={{
-                  backgroundColor: colors.bgSecondary,
-                  border: `1px solid ${colors.border}`,
-                }}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: '#10B98115' }}
-                  >
-                    <Lock size={20} style={{ color: '#10B981' }} />
-                  </div>
-                  <p className="font-semibold" style={{ color: colors.textPrimary }}>
-                    Role-Based Access
-                  </p>
-                </div>
-                <p className="text-sm" style={{ color: colors.textMuted }}>
-                  Granular permissions with role management
-                </p>
-              </div>
-              <div
-                className="p-4 rounded-xl"
-                style={{
-                  backgroundColor: colors.bgSecondary,
-                  border: `1px solid ${colors.border}`,
-                }}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: '#F5656515' }}
-                  >
-                    <FileText size={20} style={{ color: '#F56565' }} />
-                  </div>
-                  <p className="font-semibold" style={{ color: colors.textPrimary }}>
-                    Audit Logging
-                  </p>
-                </div>
-                <p className="text-sm" style={{ color: colors.textMuted }}>
-                  Complete activity tracking and audit trails
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Footer */}
-        <div className="text-center py-4">
-          <p className="text-sm" style={{ color: colors.textMuted }}>
-            Built with modern web technologies
-          </p>
+            );
+          })}
         </div>
       </div>
     </DashboardLayout>

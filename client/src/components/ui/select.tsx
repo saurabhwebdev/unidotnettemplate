@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { colors } from '../../config/theme.config';
 
 interface SelectOption {
@@ -44,85 +44,80 @@ export function Select({ value, onChange, options, placeholder, className = '' }
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer focus:outline-none focus:ring-2"
+        className="w-full flex items-center justify-between px-3 py-1.5 text-sm focus:outline-none"
         style={{
           backgroundColor: colors.bgPrimary,
           color: value ? colors.textPrimary : colors.textMuted,
-          border: `1px solid ${isOpen ? colors.primary : colors.border}`,
-          boxShadow: isOpen ? `0 0 0 3px ${colors.primary}20` : '0 1px 2px rgba(0, 0, 0, 0.05)',
+          border: `1px solid ${colors.border}`,
         }}
       >
         <span className="truncate">{displayValue}</span>
         <ChevronDown
-          className={`w-4 h-4 ml-2 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-3 h-3 ml-2 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           style={{ color: colors.textMuted }}
         />
       </button>
 
       {/* Dropdown Menu */}
-      <div
-        className={`absolute z-50 w-full mt-1 rounded-lg shadow-lg overflow-hidden transition-all duration-200 origin-top ${
-          isOpen
-            ? 'opacity-100 scale-y-100 translate-y-0'
-            : 'opacity-0 scale-y-95 -translate-y-1 pointer-events-none'
-        }`}
-        style={{
-          backgroundColor: colors.bgPrimary,
-          border: `1px solid ${colors.border}`,
-          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-        }}
-      >
-        <div className="py-1 max-h-60 overflow-y-auto">
-          {/* Placeholder/Reset Option */}
-          {placeholder && (
-            <button
-              type="button"
-              onClick={() => handleSelect('')}
-              className="w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors text-left"
-              style={{
-                color: colors.textMuted,
-                backgroundColor: !value ? `${colors.primary}10` : 'transparent',
-              }}
-              onMouseEnter={(e) => {
-                if (value) e.currentTarget.style.backgroundColor = colors.bgHover;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = !value ? `${colors.primary}10` : 'transparent';
-              }}
-            >
-              <span>{placeholder}</span>
-              {!value && <Check className="w-4 h-4" style={{ color: colors.primary }} />}
-            </button>
-          )}
-
-          {/* Options */}
-          {options.map((option) => {
-            const isSelected = option.value === value;
-            return (
+      {isOpen && (
+        <div
+          className="absolute z-50 w-full mt-0"
+          style={{
+            backgroundColor: colors.bgPrimary,
+            border: `1px solid ${colors.border}`,
+          }}
+        >
+          <div className="max-h-60 overflow-y-auto">
+            {/* Placeholder/Reset Option */}
+            {placeholder && (
               <button
-                key={option.value}
                 type="button"
-                onClick={() => handleSelect(option.value)}
-                className="w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors text-left"
+                onClick={() => handleSelect('')}
+                className="w-full px-3 py-1.5 text-sm text-left"
                 style={{
-                  color: isSelected ? colors.primary : colors.textPrimary,
-                  backgroundColor: isSelected ? `${colors.primary}10` : 'transparent',
-                  fontWeight: isSelected ? 500 : 400,
+                  color: colors.textMuted,
+                  backgroundColor: !value ? colors.bgSecondary : 'transparent',
+                  borderBottom: `1px solid ${colors.border}`,
                 }}
                 onMouseEnter={(e) => {
-                  if (!isSelected) e.currentTarget.style.backgroundColor = colors.bgHover;
+                  if (value) e.currentTarget.style.backgroundColor = colors.bgSecondary;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = isSelected ? `${colors.primary}10` : 'transparent';
+                  e.currentTarget.style.backgroundColor = !value ? colors.bgSecondary : 'transparent';
                 }}
               >
-                <span>{option.label}</span>
-                {isSelected && <Check className="w-4 h-4" style={{ color: colors.primary }} />}
+                {placeholder}
               </button>
-            );
-          })}
+            )}
+
+            {/* Options */}
+            {options.map((option) => {
+              const isSelected = option.value === value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleSelect(option.value)}
+                  className="w-full px-3 py-1.5 text-sm text-left"
+                  style={{
+                    color: colors.textPrimary,
+                    backgroundColor: isSelected ? colors.bgSecondary : 'transparent',
+                    borderBottom: `1px solid ${colors.border}`,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) e.currentTarget.style.backgroundColor = colors.bgSecondary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = isSelected ? colors.bgSecondary : 'transparent';
+                  }}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
