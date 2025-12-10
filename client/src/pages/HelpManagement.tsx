@@ -3,9 +3,87 @@ import { DashboardLayout } from '../components/DashboardLayout';
 import { colors } from '../config/theme.config';
 import { helpService } from '../services/help.service';
 import type { HelpSection, CreateHelpSectionRequest, CreateHelpTopicRequest } from '../services/help.service';
-import { Plus, Edit2, Trash2, X, ChevronDown, ChevronUp } from 'lucide-react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { Plus, Edit2, Trash2, X, ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, Link as LinkIcon, Strikethrough } from 'lucide-react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+
+// Tiptap Editor Component
+function TiptapEditor({ content, onChange }: { content: string; onChange: (html: string) => void }) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link.configure({
+        openOnClick: false,
+      }),
+    ],
+    content,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
+  });
+
+  const setLink = () => {
+    const url = window.prompt('Enter URL:');
+    if (url) {
+      editor?.chain().focus().setLink({ href: url }).run();
+    }
+  };
+
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div>
+      <div className="tiptap-toolbar">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          className={editor.isActive('bold') ? 'is-active' : ''}
+        >
+          <Bold size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          className={editor.isActive('italic') ? 'is-active' : ''}
+        >
+          <Italic size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          className={editor.isActive('strike') ? 'is-active' : ''}
+        >
+          <Strikethrough size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          className={editor.isActive('bulletList') ? 'is-active' : ''}
+        >
+          <List size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          className={editor.isActive('orderedList') ? 'is-active' : ''}
+        >
+          <ListOrdered size={14} />
+        </button>
+        <button
+          type="button"
+          onClick={setLink}
+          className={editor.isActive('link') ? 'is-active' : ''}
+        >
+          <LinkIcon size={14} />
+        </button>
+      </div>
+      <EditorContent editor={editor} className="tiptap-editor" />
+    </div>
+  );
+}
 
 export default function HelpManagement() {
   const [sections, setSections] = useState<HelpSection[]>([]);
@@ -16,45 +94,78 @@ export default function HelpManagement() {
   const [selectedSectionId, setSelectedSectionId] = useState<string>('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
-  // Add custom styles for Quill editor
+  // Add custom styles for Tiptap editor
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
-      .quill-wrapper .ql-toolbar {
+      .tiptap-editor {
+        background-color: ${colors.bgSecondary};
+        border: 1px solid ${colors.border};
+        color: ${colors.textPrimary};
+        min-height: 150px;
+        padding: 12px;
+        font-size: 14px;
+      }
+      .tiptap-editor:focus {
+        outline: none;
+        border-color: ${colors.primary};
+      }
+      .tiptap-editor p {
+        margin-bottom: 0.5rem;
+      }
+      .tiptap-editor p:last-child {
+        margin-bottom: 0;
+      }
+      .tiptap-editor strong {
+        font-weight: 600;
+      }
+      .tiptap-editor em {
+        font-style: italic;
+      }
+      .tiptap-editor a {
+        color: ${colors.primary};
+        text-decoration: underline;
+      }
+      .tiptap-editor ul,
+      .tiptap-editor ol {
+        margin-left: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .tiptap-editor ul {
+        list-style-type: disc;
+      }
+      .tiptap-editor ol {
+        list-style-type: decimal;
+      }
+      .tiptap-toolbar {
         background-color: ${colors.bgSecondary};
         border: 1px solid ${colors.border};
         border-bottom: none;
+        padding: 8px;
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
       }
-      .quill-wrapper .ql-container {
-        background-color: ${colors.bgSecondary};
+      .tiptap-toolbar button {
+        padding: 4px 8px;
+        background-color: ${colors.bgPrimary};
         border: 1px solid ${colors.border};
-        color: ${colors.textPrimary};
-        font-size: 14px;
-        min-height: 150px;
-      }
-      .quill-wrapper .ql-editor {
-        color: ${colors.textPrimary};
-        min-height: 150px;
-      }
-      .quill-wrapper .ql-editor.ql-blank::before {
-        color: ${colors.textMuted};
-      }
-      .quill-wrapper .ql-stroke {
-        stroke: ${colors.textSecondary};
-      }
-      .quill-wrapper .ql-fill {
-        fill: ${colors.textSecondary};
-      }
-      .quill-wrapper .ql-picker-label {
         color: ${colors.textSecondary};
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s;
       }
-      .quill-wrapper button:hover .ql-stroke,
-      .quill-wrapper button.ql-active .ql-stroke {
-        stroke: ${colors.primary};
+      .tiptap-toolbar button:hover {
+        background-color: ${colors.primary};
+        color: white;
+        border-color: ${colors.primary};
       }
-      .quill-wrapper button:hover .ql-fill,
-      .quill-wrapper button.ql-active .ql-fill {
-        fill: ${colors.primary};
+      .tiptap-toolbar button.is-active {
+        background-color: ${colors.primary};
+        color: white;
+        border-color: ${colors.primary};
       }
     `;
     document.head.appendChild(style);
@@ -531,33 +642,10 @@ export default function HelpManagement() {
                 <label className="block text-xs font-medium mb-1" style={{ color: colors.textSecondary }}>
                   ANSWER
                 </label>
-                <div className="quill-wrapper" style={{
-                  '--quill-bg': colors.bgSecondary,
-                  '--quill-border': colors.border,
-                  '--quill-text': colors.textPrimary,
-                } as React.CSSProperties}>
-                  <ReactQuill
-                    value={topicForm.answer}
-                    onChange={(value) => setTopicForm({ ...topicForm, answer: value })}
-                    modules={{
-                      toolbar: [
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link'],
-                        ['clean']
-                      ]
-                    }}
-                    formats={[
-                      'bold', 'italic', 'underline', 'strike',
-                      'list', 'bullet',
-                      'link'
-                    ]}
-                    style={{
-                      backgroundColor: colors.bgSecondary,
-                      color: colors.textPrimary
-                    }}
-                  />
-                </div>
+                <TiptapEditor
+                  content={topicForm.answer}
+                  onChange={(html) => setTopicForm({ ...topicForm, answer: html })}
+                />
               </div>
 
               <div>
