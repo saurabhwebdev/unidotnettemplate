@@ -884,13 +884,25 @@ export function RolesAndUsers() {
               </div>
               <button
                 onClick={loadRoutes}
-                className="px-3 py-1.5 text-xs font-medium flex items-center gap-2"
+                className="px-3 py-1.5 text-xs font-medium flex items-center gap-2 transition-all duration-200"
                 style={{
                   backgroundColor: colors.bgPrimary,
                   border: `1px solid ${colors.border}`,
                   color: colors.textPrimary
                 }}
                 disabled={loadingRoutes}
+                onMouseEnter={(e) => {
+                  if (!loadingRoutes) {
+                    e.currentTarget.style.backgroundColor = colors.primary;
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.borderColor = colors.primary;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = colors.bgPrimary;
+                  e.currentTarget.style.color = colors.textPrimary;
+                  e.currentTarget.style.borderColor = colors.border;
+                }}
               >
                 <RefreshCw size={14} className={loadingRoutes ? 'animate-spin' : ''} />
                 Refresh
